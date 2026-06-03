@@ -1,0 +1,142 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300..700;1,300..700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Montserrat", "Optimistic VF", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  
+  --color-mac-canvas: var(--mac-canvas);
+  --color-mac-sidebar: var(--mac-sidebar);
+  --color-mac-panel: var(--mac-panel);
+  --color-mac-surface: var(--mac-surface);
+  --color-mac-border: var(--mac-border);
+  --color-mac-text: var(--mac-text);
+  --color-mac-muted: var(--mac-muted);
+  --color-mac-traffic-red: #FF5F56;
+  --color-mac-traffic-yellow: #FFBD2E;
+  --color-mac-traffic-green: #27C93F;
+  --color-mac-accent: var(--mac-accent);
+  --color-mac-accentHover: var(--mac-accentHover);
+
+  --shadow-mac-shadow: var(--mac-shadow);
+  --shadow-mac-popover: var(--mac-popover);
+  --shadow-mac-inset: var(--mac-inset);
+
+  /* Meta border radiuses */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 16px;
+  --radius-xxl: 24px;
+  --radius-xxxl: 32px;
+  --radius-feature: 40px;
+  --radius-full: 100px;
+}
+
+:root {
+  /* Meta Light Theme System */
+  --mac-canvas: #FFFFFF;      /* Stark white canvas */
+  --mac-sidebar: #F1F4F7;     /* Soft cloud off-white sidebar */
+  --mac-panel: #FFFFFF;       /* Pure white product cards */
+  --mac-surface: #DEE3E9;     /* Hairline soft hover / tertiary boundaries */
+  --mac-border: #CED0D4;      /* Hairline boundary standard */
+  --mac-text: #0A1317;        /* Deep Ink primary text */
+  --mac-muted: #5D6C7B;       /* Slate / Steel secondary text */
+  --mac-accent: #0064E0;      /* Cobalt Blue Buy-Now Primary */
+  --mac-accentHover: #0457CB; /* Pressed deep cobalt */
+  
+  --mac-shadow: rgba(20, 22, 26, 0.04) 0px 1px 2px 0px; /* Quieter, no heavy shadows */
+  --mac-popover: rgba(20, 22, 26, 0.12) 0px 4px 12px 0px; 
+  --mac-inset: none;
+  --mac-glass-bg: rgba(241, 244, 247, 0.85);
+}
+
+.dark {
+  /* Meta Premium Dark Theme System */
+  --mac-canvas: #0A1317;      /* Obsidian Deep Ink canvas */
+  --mac-sidebar: #151C20;     /* Slate-Obsidian dark sidebar */
+  --mac-panel: #101A1E;       /* Card backgrounds */
+  --mac-surface: #212C32;     /* Dark hover surfaces */
+  --mac-border: #2E3B43;      /* Hairline soft gray-blue */
+  --mac-text: #F1F4F7;        /* Soft canvas white typography */
+  --mac-muted: #8595A4;       /* Slate / Stone muted text */
+  --mac-accent: #0091FF;      /* Soft Cobalt active highlight */
+  --mac-accentHover: #0064E0; /* Pressed Cobalt hover */
+  
+  --mac-shadow: none;
+  --mac-popover: rgba(0, 0, 0, 0.45) 0px 8px 24px 0px;
+  --mac-inset: none;
+  --mac-glass-bg: rgba(21, 28, 32, 0.85);
+}
+
+@layer base {
+  body {
+    @apply text-mac-text font-sans antialiased selection:bg-mac-accent selection:text-white transition-colors duration-200;
+    overflow: hidden;
+    background-color: var(--mac-canvas);
+  }
+}
+
+/* Clean, thin scrollbars (macOS native feel) */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(133, 149, 164, 0.25);
+  border-radius: 99px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(133, 149, 164, 0.45);
+}
+
+.mac-transition {
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Crisp pop animation */
+.mac-spring-popup {
+  animation: mac-spring-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes mac-spring-in {
+  0% { transform: scale(0.97) translateY(6px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+/* Base Card Utility - Meta's generous rounding */
+.mac-tahoe-card {
+  background-color: var(--mac-panel);
+  border-radius: 16px; /* Meta standard xl rounding */
+  border: 1px solid var(--mac-surface);
+  box-shadow: var(--mac-shadow);
+}
+
+/* Standard Dimmed Backdrop for Modals */
+.mac-backdrop {
+  background-color: rgba(10, 19, 23, 0.4); 
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: background-color 0.2s ease, backdrop-filter 0.2s ease;
+}
+
+.dark .mac-backdrop {
+  background-color: rgba(5, 8, 10, 0.7);
+}
+
+/* Hide spinners globally for a cleaner macOS aesthetic */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
+}
