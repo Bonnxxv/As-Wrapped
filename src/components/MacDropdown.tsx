@@ -96,8 +96,8 @@ export const MacDropdown: React.FC<MacDropdownProps> = ({
           hover:bg-[color:var(--md-sys-color-surface-container-low)]
           focus-visible:border-[color:var(--md-sys-color-primary)] focus-visible:border-2
           ${size === 'sm'
-            ? 'h-7 text-xs px-2.5 rounded-[8px]'
-            : 'h-9 text-[13px] px-3.5 rounded-[12px]'
+            ? 'h-9 text-xs px-3 rounded-[8px]'
+            : 'h-11 text-sm px-4 rounded-[12px]'
           }
         `}
       >
@@ -133,8 +133,8 @@ export const MacDropdown: React.FC<MacDropdownProps> = ({
                     flex items-center justify-between gap-3
                     cursor-pointer transition-colors duration-75
                     ${size === 'sm'
-                      ? 'px-2 py-[5px] mx-0.5 rounded-[6px] text-xs'
-                      : 'px-3 py-[7px] mx-1 rounded-[8px] text-[13px]'
+                      ? 'px-2 py-[6px] mx-0.5 rounded-[6px] text-xs'
+                      : 'px-3.5 py-[10px] mx-1 rounded-[8px] text-sm'
                     }
                     ${isSelected
                       ? 'bg-[color:var(--md-sys-color-primary-container)] text-[color:var(--md-sys-color-on-primary-container)] font-semibold'

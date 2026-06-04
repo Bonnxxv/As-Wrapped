@@ -13,7 +13,9 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Download,
-  Upload
+  Upload,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { PlatformProfiles, PlatformType } from '../types';
 import { MONTH_NAMES } from '../utils/initialState';
@@ -32,51 +34,50 @@ interface MacSidebarProps {
   onToggleCollapse: () => void;
   onExportData: () => void;
   onImportData: (file: File) => Promise<boolean>;
+  isDarkMode: boolean;
+  onToggleTheme: () => void;
 }
 
+// Full TikTok music-note path (original 0-24 space, spans ~x:2.3-20.7, y:0-24.3)
+const _ttPath = "M12.53.02C13.84 0 15.14.01 16.44 0c.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.07-2.88-.52-4.13-1.32-.73-.47-1.35-1.07-1.78-1.81V17c-.02 1.62-.48 3.24-1.37 4.61C14 23.42 11.58 24.32 9.15 23.95c-2.43-.37-4.63-1.87-5.74-4.07C2.3 17.68 2.06 15.07 2.73 12.8c.67-2.28 2.4-4.17 4.63-4.96 1.17-.41 2.42-.51 3.65-.3v4.05c-.88-.23-1.85-.14-2.69.25-1.25.59-2.09 1.86-2.22 3.25-.13 1.38.47 2.77 1.51 3.62 1.05.85 2.5 1.06 3.73.55 1.23-.51 1.99-1.75 2.03-3.08.01-3.03.01-6.07.01-9.11 0-2.32.01-4.64.01-6.96z";
+
+// 2px padding on bg rect to match Lucide icon visual weight
 export const TikTokIcon = ({ size = 16, className = "" }: { size?: number; className?: string }) => (
   <svg viewBox="0 0 24 24" width={size} height={size} className={className} style={{ display: 'inline-block', verticalAlign: 'middle' }}>
-    <rect width="24" height="24" rx="5.5" fill="#000000" />
-    <path
-      d="M12.53.02C13.84 0 15.14.01 16.44 0c.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.07-2.88-.52-4.13-1.32-.73-.47-1.35-1.07-1.78-1.81V17c-.02 1.62-.48 3.24-1.37 4.61C14 23.42 11.58 24.32 9.15 23.95c-2.43-.37-4.63-1.87-5.74-4.07C2.3 17.68 2.06 15.07 2.73 12.8c.67-2.28 2.4-4.17 4.63-4.96 1.17-.41 2.42-.51 3.65-.3v4.05c-.88-.23-1.85-.14-2.69.25-1.25.59-2.09 1.86-2.22 3.25-.13 1.38.47 2.77 1.51 3.62 1.05.85 2.5 1.06 3.73.55 1.23-.51 1.99-1.75 2.03-3.08.01-3.03.01-6.07.01-9.11 0-2.32.01-4.64.01-6.96z"
-      fill="#25F4EE"
-      transform="translate(3.7, 4.2) scale(0.65)"
-    />
-    <path
-      d="M12.53.02C13.84 0 15.14.01 16.44 0c.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.07-2.88-.52-4.13-1.32-.73-.47-1.35-1.07-1.78-1.81V17c-.02 1.62-.48 3.24-1.37 4.61C14 23.42 11.58 24.32 9.15 23.95c-2.43-.37-4.63-1.87-5.74-4.07C2.3 17.68 2.06 15.07 2.73 12.8c.67-2.28 2.4-4.17 4.63-4.96 1.17-.41 2.42-.51 3.65-.3v4.05c-.88-.23-1.85-.14-2.69.25-1.25.59-2.09 1.86-2.22 3.25-.13 1.38.47 2.77 1.51 3.62 1.05.85 2.5 1.06 3.73.55 1.23-.51 1.99-1.75 2.03-3.08.01-3.03.01-6.07.01-9.11 0-2.32.01-4.64.01-6.96z"
-      fill="#FE2C55"
-      transform="translate(4.7, 4.2) scale(0.65)"
-    />
-    <path
-      d="M12.53.02C13.84 0 15.14.01 16.44 0c.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.07-2.88-.52-4.13-1.32-.73-.47-1.35-1.07-1.78-1.81V17c-.02 1.62-.48 3.24-1.37 4.61C14 23.42 11.58 24.32 9.15 23.95c-2.43-.37-4.63-1.87-5.74-4.07C2.3 17.68 2.06 15.07 2.73 12.8c.67-2.28 2.4-4.17 4.63-4.96 1.17-.41 2.42-.51 3.65-.3v4.05c-.88-.23-1.85-.14-2.69.25-1.25.59-2.09 1.86-2.22 3.25-.13 1.38.47 2.77 1.51 3.62 1.05.85 2.5 1.06 3.73.55 1.23-.51 1.99-1.75 2.03-3.08.01-3.03.01-6.07.01-9.11 0-2.32.01-4.64.01-6.96z"
-      fill="#FFFFFF"
-      transform="translate(4.2, 4.2) scale(0.65)"
-    />
+    <rect x="2" y="2" width="20" height="20" rx="5" fill="#010101" />
+    {/* Cyan shadow — left */}
+    <path d={_ttPath} fill="#25F4EE" transform="translate(2.65,3.1) scale(0.74)" />
+    {/* Red shadow — right */}
+    <path d={_ttPath} fill="#FE2C55" transform="translate(3.55,3.1) scale(0.74)" />
+    {/* White main — centered */}
+    <path d={_ttPath} fill="#FFFFFF" transform="translate(3.1,3.1) scale(0.74)" />
   </svg>
 );
 
-export const InstagramIcon = ({ size = 16, className = "" }: { size?: number; className?: string }) => (
-  <svg viewBox="0 0 24 24" width={size} height={size} className={className} style={{ display: 'inline-block', verticalAlign: 'middle' }}>
-    <defs>
-      <radialGradient id="ig-grad-icon" cx="30%" cy="107%" r="130%">
-        <stop offset="0%" stopColor="#fdf497" />
-        <stop offset="5%" stopColor="#fdf497" />
-        <stop offset="45%" stopColor="#fd5949" />
-        <stop offset="60%" stopColor="#d6249f" />
-        <stop offset="90%" stopColor="#285AEB" />
-      </radialGradient>
-    </defs>
-    <rect width="24" height="24" rx="5.5" fill="url(#ig-grad-icon)" />
-    <path
-      d="M12 7.5a4.5 4.5 0 100 9 4.5 4.5 0 000-9zm0 7.4a2.9 2.9 0 110-5.8 2.9 2.9 0 010 5.8zm4.9-7.5a1.05 1.05 0 100 2.1 1.05 1.05 0 000-2.1z"
-      fill="#ffffff"
-    />
-    <path
-      d="M16.5 4.5h-9A3 3 0 004.5 7.5v9a3 3 0 003 3h9a3 3 0 003-3v-9a3 3 0 00-3-3zm1.7 12a1.7 1.7 0 01-1.7 1.7h-9a1.7 1.7 0 01-1.7-1.7v-9a1.7 1.7 0 011.7-1.7h9a1.7 1.7 0 011.7 1.7v9z"
-      fill="#ffffff"
-    />
-  </svg>
-);
+// 2px padding on bg rect to match Lucide icon visual weight
+export const InstagramIcon = ({ size = 16, className = "" }: { size?: number; className?: string }) => {
+  const uid = React.useId ? React.useId().replace(/:/g, '') : 'ig';
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} className={className} style={{ display: 'inline-block', verticalAlign: 'middle' }}>
+      <defs>
+        <radialGradient id={`ig-rg-${uid}`} cx="30%" cy="107%" r="130%">
+          <stop offset="0%" stopColor="#fdf497" />
+          <stop offset="5%" stopColor="#fdf497" />
+          <stop offset="45%" stopColor="#fd5949" />
+          <stop offset="60%" stopColor="#d6249f" />
+          <stop offset="90%" stopColor="#285AEB" />
+        </radialGradient>
+      </defs>
+      <rect x="2" y="2" width="20" height="20" rx="5" fill={`url(#ig-rg-${uid})`} />
+      {/* Camera border */}
+      <rect x="6" y="6" width="12" height="12" rx="3" fill="none" stroke="#fff" strokeWidth="1.4" />
+      {/* Lens */}
+      <circle cx="12" cy="12" r="3" fill="none" stroke="#fff" strokeWidth="1.4" />
+      {/* Dot */}
+      <circle cx="16.5" cy="7.5" r="0.9" fill="#fff" />
+    </svg>
+  );
+};
 
 /* ─── Small Dialog wrapper with M3 animation ─── */
 interface SmallDialogProps {
@@ -132,7 +133,9 @@ export const MacSidebar: React.FC<MacSidebarProps> = ({
   isCollapsed,
   onToggleCollapse,
   onExportData,
-  onImportData
+  onImportData,
+  isDarkMode,
+  onToggleTheme
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -195,8 +198,8 @@ export const MacSidebar: React.FC<MacSidebarProps> = ({
     flex items-center rounded-full select-none cursor-pointer
     transition-colors duration-150 text-left relative overflow-hidden
   `;
-  const navItemExpanded = `${navItemBase} gap-3 px-4 py-2 w-full`;
-  const navItemCollapsed = `${navItemBase} justify-center p-2.5 w-10 h-10`;
+  const navItemExpanded = `${navItemBase} gap-3 px-4 h-11 w-full`;
+  const navItemCollapsed = `${navItemBase} justify-center p-2.5 w-11 h-11`;
 
   const getActiveNavItemClass = (view: 'dashboard' | 'instagram' | 'tiktok' | 'folder') => {
     switch (view) {
@@ -215,7 +218,7 @@ export const MacSidebar: React.FC<MacSidebarProps> = ({
   const navItemDefault = 'text-[color:var(--md-sys-color-on-surface-variant)] hover:bg-[color:var(--md-sys-color-surface-container-high)] hover:text-[color:var(--md-sys-color-on-surface)]';
 
   /* ── Section label style ── */
-  const sectionLabel = 'text-[11px] font-medium text-[color:var(--md-sys-color-on-surface-variant)] px-4 mb-1 tracking-[.5px] select-none uppercase';
+  const sectionLabel = 'text-[12px] font-medium text-[color:var(--md-sys-color-on-surface-variant)] px-4 mb-1 tracking-[.5px] select-none uppercase';
 
   return (
     <div
@@ -226,7 +229,7 @@ export const MacSidebar: React.FC<MacSidebarProps> = ({
       `}
     >
       {/* ─── Header ─────────────────── */}
-      <div className={`h-14 flex items-center shrink-0 px-4 gap-3 ${isCollapsed ? 'justify-center px-0' : 'justify-between'}`}>
+      <div className={`h-14 flex items-center shrink-0 ${isCollapsed ? 'justify-center px-0' : 'justify-between px-4 gap-3'}`}>
         <span
           className={`text-[15px] font-semibold tracking-tight text-[color:var(--md-sys-color-on-surface)] truncate transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden ${isCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[150px] opacity-100'}`}
           style={{ fontFamily: "'Google Sans Display', sans-serif" }}
@@ -329,19 +332,28 @@ export const MacSidebar: React.FC<MacSidebarProps> = ({
 
         {/* Year Folders */}
         <div className="flex flex-col gap-0.5">
-          <div className={`flex items-center justify-between px-4 mb-1 transition-all duration-300 ${isCollapsed ? 'justify-center px-0' : ''}`}>
-            <span className={`${sectionLabel} px-0 transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden ${isCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[150px] opacity-100'}`}>Folders</span>
-            <button
-              onClick={() => {
-                if (isCollapsed) onToggleCollapse();
-                setIsAddingYear(true);
-              }}
-              className="md-icon-btn-sm shrink-0"
-              title="Add Year"
-            >
-              <Plus size={16} />
-            </button>
-          </div>
+          {isCollapsed ? (
+            <div className="flex justify-center w-full mb-1">
+              <button
+                onClick={() => { onToggleCollapse(); setIsAddingYear(true); }}
+                className="md-icon-btn-sm"
+                title="Add Year"
+              >
+                <Plus size={16} />
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between px-4 mb-1">
+              <span className={`${sectionLabel} px-0`}>Folders</span>
+              <button
+                onClick={() => setIsAddingYear(true)}
+                className="md-icon-btn-sm shrink-0"
+                title="Add Year"
+              >
+                <Plus size={16} />
+              </button>
+            </div>
+          )}
 
           {years.map(year => {
             const isOpen = collapsedYears[year] === false;
@@ -406,11 +418,26 @@ export const MacSidebar: React.FC<MacSidebarProps> = ({
 
         <div className="flex flex-col gap-2">
           <button
+            onClick={onToggleTheme}
+            className={`flex items-center justify-center transition-all duration-300 shrink-0 select-none cursor-pointer overflow-hidden
+              ${isCollapsed
+                ? 'w-11 h-11 rounded-full md-icon-btn self-center'
+                : 'gai-btn-outlined w-full h-11 px-4 rounded-xl text-sm gap-2'
+              }`}
+            title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+          >
+            {isDarkMode ? <Sun size={14} className="shrink-0" /> : <Moon size={14} className="shrink-0" />}
+            <span className={`transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden ${isCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[150px] opacity-100'}`}>
+              {isDarkMode ? "Switch to Light" : "Switch to Dark"}
+            </span>
+          </button>
+
+          <button
             onClick={onExportData}
             className={`flex items-center justify-center transition-all duration-300 shrink-0 select-none cursor-pointer overflow-hidden
               ${isCollapsed
-                ? 'w-10 h-10 rounded-full md-icon-btn self-center'
-                : 'gai-btn-outlined w-full h-9 px-4 rounded-xl text-xs gap-2'
+                ? 'w-11 h-11 rounded-full md-icon-btn self-center'
+                : 'gai-btn-outlined w-full h-11 px-4 rounded-xl text-sm gap-2'
               }`}
             title={isCollapsed ? "Export Backup" : "Export data ke JSON"}
           >
@@ -424,8 +451,8 @@ export const MacSidebar: React.FC<MacSidebarProps> = ({
             onClick={() => fileInputRef.current?.click()}
             className={`flex items-center justify-center transition-all duration-300 shrink-0 select-none cursor-pointer overflow-hidden
               ${isCollapsed
-                ? 'w-10 h-10 rounded-full md-icon-btn self-center'
-                : 'gai-btn-tonal w-full h-9 px-4 rounded-xl text-xs gap-2'
+                ? 'w-11 h-11 rounded-full md-icon-btn self-center'
+                : 'gai-btn-tonal w-full h-11 px-4 rounded-xl text-sm gap-2'
               }`}
             title={isCollapsed ? "Import Backup" : "Import dari file JSON"}
           >

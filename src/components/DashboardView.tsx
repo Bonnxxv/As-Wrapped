@@ -11,8 +11,6 @@ import {
 import {
   TrendingUp,
   TrendingDown,
-  Sun,
-  Moon,
   Eye,
   Heart,
   Sparkles,
@@ -20,39 +18,43 @@ import {
   Video,
   Crown,
   Maximize2,
-  X
+  X,
+  Check
 } from 'lucide-react';
 import { FolderDataState, PlatformProfiles, ContentEntry } from '../types';
 import { MONTH_NAMES, getDaysInMonth } from '../utils/initialState';
 import { MacDropdown } from './MacDropdown';
 
-const InstagramIcon = ({ size = 14, className = "" }: { size?: number; className?: string }) => (
-  <svg
-    viewBox="0 0 24 24"
-    width={size}
-    height={size}
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2.2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
-  </svg>
-);
+const InstagramIcon = ({ size = 14, className = "" }: { size?: number; className?: string }) => {
+  const uid = React.useId ? React.useId().replace(/:/g, '') : 'igd';
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} className={className} style={{ display: 'inline-block', verticalAlign: 'middle' }}>
+      <defs>
+        <radialGradient id={`ig-rg-${uid}`} cx="30%" cy="107%" r="130%">
+          <stop offset="0%" stopColor="#fdf497" />
+          <stop offset="5%" stopColor="#fdf497" />
+          <stop offset="45%" stopColor="#fd5949" />
+          <stop offset="60%" stopColor="#d6249f" />
+          <stop offset="90%" stopColor="#285AEB" />
+        </radialGradient>
+      </defs>
+      <rect x="2" y="2" width="20" height="20" rx="5" fill={`url(#ig-rg-${uid})`} />
+      <rect x="6" y="6" width="12" height="12" rx="3" fill="none" stroke="#fff" strokeWidth="1.4" />
+      <circle cx="12" cy="12" r="3" fill="none" stroke="#fff" strokeWidth="1.4" />
+      <circle cx="16.5" cy="7.5" r="0.9" fill="#fff" />
+    </svg>
+  );
+};
+
+// Full TikTok music-note path for 24x24 icon
+const _ttPathD = "M12.53.02C13.84 0 15.14.01 16.44 0c.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.07-2.88-.52-4.13-1.32-.73-.47-1.35-1.07-1.78-1.81V17c-.02 1.62-.48 3.24-1.37 4.61C14 23.42 11.58 24.32 9.15 23.95c-2.43-.37-4.63-1.87-5.74-4.07C2.3 17.68 2.06 15.07 2.73 12.8c.67-2.28 2.4-4.17 4.63-4.96 1.17-.41 2.42-.51 3.65-.3v4.05c-.88-.23-1.85-.14-2.69.25-1.25.59-2.09 1.86-2.22 3.25-.13 1.38.47 2.77 1.51 3.62 1.05.85 2.5 1.06 3.73.55 1.23-.51 1.99-1.75 2.03-3.08.01-3.03.01-6.07.01-9.11 0-2.32.01-4.64.01-6.96z";
 
 const TikTokIcon = ({ size = 14, className = "" }: { size?: number; className?: string }) => (
-  <svg
-    viewBox="0 0 24 24"
-    width={size}
-    height={size}
-    fill="currentColor"
-    className={className}
-  >
-    <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.02 1.59 4.23-.7.17-1.42.27-2.14.3-1.02.02-2.03-.02-3.05.03v5.11c-.05 1.76-1.05 3.39-2.61 4.19-1.92.93-4.39.52-5.88-1-.07-.07-.15-.15-.22-.22-1.5-1.78-1.52-4.49-.07-6.3 1.25-1.59 3.39-2.31 5.41-1.85V.22a7.99 7.99 0 0 0-5.89 2.56c-2.91 3.2-2.73 8.22.42 11.21 2.97 2.8 7.69 2.76 10.6-.08 1.48-1.4 2.27-3.37 2.22-5.44V5.41c1.21.82 2.64 1.34 4.13 1.45V2.95a5.955 5.955 0 0 1-3.69-2.48c-.41-.59-.72-1.24-.91-1.92-.88.02-1.76.01-2.65.02v1.45z" />
+  <svg viewBox="0 0 24 24" width={size} height={size} className={className} style={{ display: 'inline-block', verticalAlign: 'middle' }}>
+    <rect x="2" y="2" width="20" height="20" rx="5" fill="#010101" />
+    <path d={_ttPathD} fill="#25F4EE" transform="translate(2.65,3.1) scale(0.74)" />
+    <path d={_ttPathD} fill="#FE2C55" transform="translate(3.55,3.1) scale(0.74)" />
+    <path d={_ttPathD} fill="#FFFFFF" transform="translate(3.1,3.1) scale(0.74)" />
   </svg>
 );
 
@@ -76,7 +78,7 @@ const CalendarWidget = ({ year, monthIndex, activeMonthData }: { year: number, m
     <div className="w-full mt-4">
       <div className="grid grid-cols-7 text-center mb-2">
         {weekDays.map(d => (
-          <div key={d} className="text-[9px] font-semibold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider">
+          <div key={d} className="text-[12px] font-semibold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider">
             {d}
           </div>
         ))}
@@ -84,15 +86,15 @@ const CalendarWidget = ({ year, monthIndex, activeMonthData }: { year: number, m
       <div className="grid grid-cols-7 border-l border-t border-[color:var(--md-sys-color-outline-variant)] rounded-xl overflow-hidden bg-[color:var(--md-sys-color-background)]">
         {totalSlots.map((day, idx) => {
           if (day === null) {
-            return <div key={`blank-${idx}`} className="h-10 border-r border-b border-[color:var(--md-sys-color-outline-variant)] bg-[color:var(--md-sys-color-background)]" />;
+            return <div key={`blank-${idx}`} className="h-11 border-r border-b border-[color:var(--md-sys-color-outline-variant)] bg-[color:var(--md-sys-color-background)]" />;
           }
           const hasContent = daysWithContent.has(day);
           return (
             <div
               key={day}
-              className="h-10 flex flex-col items-center justify-center border-r border-b border-[color:var(--md-sys-color-outline-variant)] text-[11px] hover:bg-[color:var(--md-sys-color-surface-container-high)] transition-colors duration-150 relative cursor-pointer"
+              className="h-11 flex flex-col items-center justify-center border-r border-b border-[color:var(--md-sys-color-outline-variant)] text-[12px] hover:bg-[color:var(--md-sys-color-surface-container-high)] transition-colors duration-150 relative cursor-pointer"
             >
-              <div className={`w-7 h-7 flex flex-col items-center justify-center rounded-full text-xs font-semibold ${
+              <div className={`w-8 h-8 flex flex-col items-center justify-center rounded-full text-xs font-semibold ${
                 hasContent ? 'bg-[#0064e0] text-white font-bold' : 'text-[color:var(--md-sys-color-on-surface)]'
               }`}>
                 {day}
@@ -115,7 +117,6 @@ interface DashboardViewProps {
   onSelectYear: (year: number) => void;
   years: number[];
   isDarkMode: boolean;
-  onToggleTheme: () => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -127,8 +128,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onSelectMonth,
   onSelectYear,
   years,
-  isDarkMode,
-  onToggleTheme
+  isDarkMode
 }) => {
   // Expanded states
   const [expandedChart, setExpandedChart] = React.useState<'monthly-combined' | 'monthly-platform' | 'daily' | 'cycle' | null>(null);
@@ -436,7 +436,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       border: `1px solid ${isDarkMode ? '#3c4043' : '#dadce0'}`,
       borderRadius: '8px',
       color: isDarkMode ? '#e8eaed' : '#202124',
-      fontSize: '11px',
+      fontSize: '12px',
       boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
     },
     labelStyle: {
@@ -451,7 +451,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     if (isDashboard) {
       return (
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 w-full">
-          {/* Impressions Card */}
+          {/* Views Card */}
           <div 
             onClick={() => setExpandedCard({ period: 'year', metric: 'views' })}
             className={`stat-card p-5 flex flex-col justify-between gap-3 w-full group ${hoverBorder}`}
@@ -461,12 +461,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <Eye size={16} />
               </div>
               <div className="flex flex-col min-w-0">
-                <span className="text-[10px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Views</span>
+                <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Views</span>
                 <div className="flex items-baseline gap-1.5 mt-0.5 flex-wrap">
                   <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">{fmt(yearTotalViews)}</span>
                   {yearViewsGrowth !== 0 && (
-                    <span className={`text-[9px] font-bold flex items-center gap-0.5 shrink-0 ${yearViewsGrowth >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                      {yearViewsGrowth >= 0 ? <TrendingUp size={8} /> : <TrendingDown size={8} />}
+                    <span className={`text-[12px] font-bold flex items-center gap-0.5 shrink-0 ${yearViewsGrowth >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                      {yearViewsGrowth >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
                       {yearViewsGrowth > 0 ? '+' : ''}{yearViewsGrowth.toFixed(0)}%
                     </span>
                   )}
@@ -475,7 +475,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
             
             <div className="flex flex-col gap-1 w-full border-t border-[color:var(--md-sys-color-outline-variant)] pt-2 z-10">
-              <div className="flex justify-between text-[9px] font-bold uppercase tracking-wider text-[color:var(--md-sys-color-on-surface-variant)]">
+              <div className="flex justify-between text-[12px] font-bold uppercase tracking-wider text-[color:var(--md-sys-color-on-surface-variant)]">
                 <span>IG: {fmt(yearIgViews)} ({yearIgPct}%)</span>
                 <span>TT: {fmt(yearTtViews)} ({yearTtPct}%)</span>
               </div>
@@ -495,10 +495,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <Video size={16} />
             </div>
             <div className="flex flex-col z-10">
-              <span className="text-[10px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Uploads</span>
+              <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Uploads</span>
               <div className="flex items-baseline gap-1.5 mt-0.5">
                 <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">{yearTotalUploads}</span>
-                <span className="text-[10px] font-medium text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Videos</span>
+                <span className="text-[12px] font-medium text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Videos</span>
               </div>
             </div>
           </div>
@@ -512,12 +512,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <Zap size={16} />
             </div>
             <div className="flex flex-col z-10">
-              <span className="text-[10px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Engagement</span>
+              <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Engagement</span>
               <div className="flex items-baseline gap-1.5 mt-0.5">
                 <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">
                   {yearTotalViews > 0 ? ((yearTotalLikes + yearTotalComments) / yearTotalViews * 100).toFixed(2) : '0.00'}%
                 </span>
-                <span className="text-[10px] font-medium text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Avg</span>
+                <span className="text-[12px] font-medium text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Avg</span>
               </div>
             </div>
           </div>
@@ -531,10 +531,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <Sparkles size={16} />
             </div>
             <div className="flex flex-col z-10">
-              <span className="text-[10px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">FYP Hits</span>
+              <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">FYP Hits</span>
               <div className="flex items-baseline gap-1.5 mt-0.5">
                 <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">{yearFypCount}</span>
-                <span className="text-[10px] font-medium text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">&gt; 20K Views</span>
+                <span className="text-[12px] font-medium text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">&gt; 20K Views</span>
               </div>
             </div>
           </div>
@@ -551,7 +551,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           className={`stat-card p-5 flex flex-col justify-between gap-3 ${hoverBorder}`}
         >
           <div className="flex items-center justify-between z-10 gap-2">
-            <span className="text-[10px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Views</span>
+            <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Views</span>
             <div className={`p-1.5 rounded-full ${iconBg} shrink-0`}>
               <Eye size={14} />
             </div>
@@ -559,11 +559,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="flex flex-col gap-0.5 z-10">
             <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">{fmt(yearTotalViews)}</span>
             {yearViewsGrowth !== 0 ? (
-              <span className="text-[9px] font-bold flex items-center gap-1 shrink-0 text-green-500 font-sans">
-                <TrendingUp size={10} />+{yearViewsGrowth.toFixed(0)}% vs LY
+              <span className="text-[12px] font-bold flex items-center gap-1 shrink-0 text-green-500 font-sans">
+                <TrendingUp size={12} />+{yearViewsGrowth.toFixed(0)}% vs LY
               </span>
             ) : (
-              <span className="text-[9px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] invisible font-sans">—</span>
+              <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] invisible font-sans">—</span>
             )}
           </div>
         </div>
@@ -574,7 +574,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           className={`stat-card p-5 flex flex-col justify-between gap-3 group ${hoverBorder}`}
         >
           <div className="flex items-center justify-between z-10 gap-2">
-            <span className="text-[10px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Likes</span>
+            <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Likes</span>
             <div className={`p-1.5 rounded-full ${iconBg} shrink-0`}>
               <Heart size={14} />
             </div>
@@ -582,11 +582,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="flex flex-col gap-0.5 z-10">
             <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">{fmt(yearTotalLikes)}</span>
             {yearLikesGrowth !== 0 ? (
-              <span className="text-[9px] font-bold flex items-center gap-1 shrink-0 text-green-500 font-sans">
-                <TrendingUp size={10} />+{yearLikesGrowth.toFixed(0)}% vs LY
+              <span className="text-[12px] font-bold flex items-center gap-1 shrink-0 text-green-500 font-sans">
+                <TrendingUp size={12} />+{yearLikesGrowth.toFixed(0)}% vs LY
               </span>
             ) : (
-              <span className="text-[9px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] invisible font-sans">—</span>
+              <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] invisible font-sans">—</span>
             )}
           </div>
         </div>
@@ -597,14 +597,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           className={`stat-card p-5 flex flex-col justify-between gap-3 ${hoverBorder}`}
         >
           <div className="flex items-center justify-between z-10 gap-2">
-            <span className="text-[10px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Uploads</span>
+            <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Uploads</span>
             <div className={`p-1.5 rounded-full ${iconBg} shrink-0`}>
               <Video size={14} />
             </div>
           </div>
           <div className="flex flex-col gap-0.5 z-10">
             <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">{yearTotalUploads}</span>
-            <span className="text-[10px] font-medium text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Videos</span>
+            <span className="text-[12px] font-medium text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Videos</span>
           </div>
         </div>
 
@@ -614,7 +614,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           className={`stat-card p-5 flex flex-col justify-between gap-3 ${hoverBorder}`}
         >
           <div className="flex items-center justify-between z-10 gap-2">
-            <span className="text-[10px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Engagement</span>
+            <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Engagement</span>
             <div className={`p-1.5 rounded-full ${iconBg} shrink-0`}>
               <Zap size={14} />
             </div>
@@ -623,7 +623,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">
               {yearTotalViews > 0 ? ((yearTotalLikes + yearTotalComments) / yearTotalViews * 100).toFixed(2) : '0.00'}%
             </span>
-            <span className="text-[10px] font-medium text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Avg</span>
+            <span className="text-[12px] font-medium text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Avg</span>
           </div>
         </div>
 
@@ -633,14 +633,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           className={`stat-card p-5 flex flex-col justify-between gap-3 group ${hoverBorder}`}
         >
           <div className="flex items-center justify-between z-10 gap-2">
-            <span className="text-[10px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">FYP Hits</span>
+            <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">FYP Hits</span>
             <div className={`p-1.5 rounded-full ${iconBg} shrink-0`}>
               <Sparkles size={14} />
             </div>
           </div>
           <div className="flex flex-col gap-0.5 z-10">
             <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">{yearFypCount}</span>
-            <span className="text-[10px] font-medium text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">&gt; 20K Views</span>
+            <span className="text-[12px] font-medium text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">&gt; 20K Views</span>
           </div>
         </div>
       </div>
@@ -663,12 +663,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <Eye size={16} />
               </div>
               <div className="flex flex-col min-w-0">
-                <span className="text-[10px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Views</span>
-                <div className="flex items-baseline gap-1.5 mt-0.5 flex-wrap">
+                <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Views</span>
+                <div className="flex items-baseline gap-2 mt-0.5 flex-wrap">
                   <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">{fmt(monthTotalViews)}</span>
                   {monthViewsGrowth !== 0 && (
-                    <span className={`text-[9px] font-bold flex items-center gap-0.5 shrink-0 ${monthViewsGrowth >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                      {monthViewsGrowth >= 0 ? <TrendingUp size={8} /> : <TrendingDown size={8} />}
+                    <span className={`text-[12px] font-bold flex items-center gap-1 shrink-0 ${monthViewsGrowth >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                      {monthViewsGrowth >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
                       {monthViewsGrowth > 0 ? '+' : ''}{monthViewsGrowth.toFixed(0)}%
                     </span>
                   )}
@@ -677,7 +677,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
             
             <div className="flex flex-col gap-1 w-full border-t border-[color:var(--md-sys-color-outline-variant)] pt-2 z-10">
-              <div className="flex justify-between text-[9px] font-bold uppercase tracking-wider text-[color:var(--md-sys-color-on-surface-variant)]">
+              <div className="flex justify-between text-[12px] font-bold uppercase tracking-wider text-[color:var(--md-sys-color-on-surface-variant)]">
                 <span className="text-[color:var(--md-sys-color-error)]">IG: {fmt(monthIgViews)} ({monthIgPct}%)</span>
                 <span className="text-[#00acc1]">TT: {fmt(monthTtViews)} ({monthTtPct}%)</span>
               </div>
@@ -697,10 +697,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <Video size={16} />
             </div>
             <div className="flex flex-col z-10">
-              <span className="text-[10px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Uploads</span>
-              <div className="flex items-baseline gap-1.5 mt-0.5">
+              <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Uploads</span>
+              <div className="flex items-baseline gap-2 mt-0.5">
                 <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">{monthTotalUploads}</span>
-                <span className="text-[10px] font-medium text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Videos</span>
+                <span className="text-[12px] font-medium text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Videos</span>
               </div>
             </div>
           </div>
@@ -714,12 +714,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <Zap size={16} />
             </div>
             <div className="flex flex-col z-10">
-              <span className="text-[10px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Engagement</span>
-              <div className="flex items-baseline gap-1.5 mt-0.5">
+              <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Engagement</span>
+              <div className="flex items-baseline gap-2 mt-0.5">
                 <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">
                   {monthTotalViews > 0 ? ((monthTotalLikes + monthTotalComments) / monthTotalViews * 100).toFixed(2) : '0.00'}%
                 </span>
-                <span className="text-[10px] font-medium text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Avg</span>
+                <span className="text-[12px] font-medium text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Avg</span>
               </div>
             </div>
           </div>
@@ -733,10 +733,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <Sparkles size={16} />
             </div>
             <div className="flex flex-col z-10">
-              <span className="text-[10px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">FYP Hits</span>
-              <div className="flex items-baseline gap-1.5 mt-0.5">
+              <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">FYP Hits</span>
+              <div className="flex items-baseline gap-2 mt-0.5">
                 <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">{monthFypCount}</span>
-                <span className="text-[10px] font-medium text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">&gt; 20K Views</span>
+                <span className="text-[12px] font-medium text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">&gt; 20K Views</span>
               </div>
             </div>
           </div>
@@ -753,19 +753,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           className={`stat-card p-5 flex flex-col justify-between gap-3 ${hoverBorder}`}
         >
           <div className="flex items-center justify-between z-10 gap-2">
-            <span className="text-[10px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Views</span>
+            <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Views</span>
             <div className={`p-1.5 rounded-full ${iconBg} shrink-0`}>
               <Eye size={14} />
             </div>
           </div>
-          <div className="flex flex-col gap-0.5 z-10">
+          <div className="flex flex-col gap-1 z-10">
             <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">{fmt(monthTotalViews)}</span>
             {monthViewsGrowth !== 0 ? (
-              <span className="text-[9px] font-bold flex items-center gap-1 shrink-0 text-green-500 font-sans">
-                <TrendingUp size={10} />+{monthViewsGrowth.toFixed(0)}% vs LM
+              <span className="text-[12px] font-bold flex items-center gap-1 shrink-0 text-green-500 font-sans">
+                <TrendingUp size={12} />+{monthViewsGrowth.toFixed(0)}% vs LM
               </span>
             ) : (
-              <span className="text-[9px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] invisible font-sans">—</span>
+              <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] invisible font-sans">—</span>
             )}
           </div>
         </div>
@@ -776,19 +776,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           className={`stat-card p-5 flex flex-col justify-between gap-3 group ${hoverBorder}`}
         >
           <div className="flex items-center justify-between z-10 gap-2">
-            <span className="text-[10px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Likes</span>
+            <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Likes</span>
             <div className={`p-1.5 rounded-full ${iconBg} shrink-0`}>
               <Heart size={14} />
             </div>
           </div>
-          <div className="flex flex-col gap-0.5 z-10">
+          <div className="flex flex-col gap-1 z-10">
             <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">{fmt(monthTotalLikes)}</span>
             {monthLikesGrowth !== 0 ? (
-              <span className="text-[9px] font-bold flex items-center gap-1 shrink-0 text-green-500 font-sans">
-                <TrendingUp size={10} />+{monthLikesGrowth.toFixed(0)}% vs LM
+              <span className="text-[12px] font-bold flex items-center gap-1 shrink-0 text-green-500 font-sans">
+                <TrendingUp size={12} />+{monthLikesGrowth.toFixed(0)}% vs LM
               </span>
             ) : (
-              <span className="text-[9px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] invisible font-sans">—</span>
+              <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] invisible font-sans">—</span>
             )}
           </div>
         </div>
@@ -799,14 +799,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           className={`stat-card p-5 flex flex-col justify-between gap-3 ${hoverBorder}`}
         >
           <div className="flex items-center justify-between z-10 gap-2">
-            <span className="text-[10px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Uploads</span>
+            <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Uploads</span>
             <div className={`p-1.5 rounded-full ${iconBg} shrink-0`}>
               <Video size={14} />
             </div>
           </div>
-          <div className="flex flex-col gap-0.5 z-10">
+          <div className="flex flex-col gap-1 z-10">
             <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">{monthTotalUploads}</span>
-            <span className="text-[10px] font-medium text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Videos</span>
+            <span className="text-[12px] font-medium text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Videos</span>
           </div>
         </div>
 
@@ -816,16 +816,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           className={`stat-card p-5 flex flex-col justify-between gap-3 ${hoverBorder}`}
         >
           <div className="flex items-center justify-between z-10 gap-2">
-            <span className="text-[10px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Engagement</span>
+            <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Engagement</span>
             <div className={`p-1.5 rounded-full ${iconBg} shrink-0`}>
               <Zap size={14} />
             </div>
           </div>
-          <div className="flex flex-col gap-0.5 z-10">
+          <div className="flex flex-col gap-1 z-10">
             <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">
               {monthTotalViews > 0 ? ((monthTotalLikes + monthTotalComments) / monthTotalViews * 100).toFixed(2) : '0.00'}%
             </span>
-            <span className="text-[10px] font-medium text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Avg</span>
+            <span className="text-[12px] font-medium text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Avg</span>
           </div>
         </div>
 
@@ -835,14 +835,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           className="stat-card p-5 flex flex-col justify-between gap-3 group"
         >
           <div className="flex items-center justify-between z-10 gap-2">
-            <span className="text-[10px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">FYP Hits</span>
+            <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">FYP Hits</span>
             <div className="p-1.5 rounded-full bg-[#f2a918]/10 text-[#f2a918] shrink-0">
               <Sparkles size={14} />
             </div>
           </div>
-          <div className="flex flex-col gap-0.5 z-10">
+          <div className="flex flex-col gap-1 z-10">
             <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">{monthFypCount}</span>
-            <span className="text-[10px] font-medium text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">&gt; 20K Views</span>
+            <span className="text-[12px] font-medium text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">&gt; 20K Views</span>
           </div>
         </div>
       </div>
@@ -1016,7 +1016,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         contentNode = (
           <div className="flex flex-col gap-4">
             {bestMonth.total > 0 && (
-              <div className="flex items-center gap-3 p-3.5 bg-[color:var(--md-sys-color-primary-container)]/30 border border-[color:var(--md-sys-color-primary-container)]/50 rounded-2xl">
+              <div className="flex items-center gap-3 p-4 bg-[color:var(--md-sys-color-primary-container)]/30 border border-[color:var(--md-sys-color-primary-container)]/50 rounded-2xl">
                 <Crown size={16} className="text-[color:var(--md-sys-color-primary)] shrink-0" />
                 <span className="text-xs font-medium text-[color:var(--md-sys-color-on-surface)]">
                   Bulan terbaik Anda adalah <strong className="text-[color:var(--md-sys-color-primary)] font-semibold">{bestMonth.name}</strong> dengan total <strong className="text-[color:var(--md-sys-color-primary)] font-semibold">{fmtFull(bestMonth.total)}</strong> tayangan.
@@ -1024,7 +1024,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </div>
             )}
             <div className="flex flex-col gap-2.5">
-              <div className="flex items-center justify-between text-[10px] uppercase tracking-wider text-[color:var(--md-sys-color-on-surface-variant)] font-bold px-4 pb-1 border-b border-[color:var(--md-sys-color-outline-variant)]/30">
+              <div className="flex items-center justify-between text-[12px] uppercase tracking-wider text-[color:var(--md-sys-color-on-surface-variant)] font-bold px-4 pb-1 border-b border-[color:var(--md-sys-color-outline-variant)]/30">
                 <span>Bulan</span>
                 <span>Views / Distribusi</span>
               </div>
@@ -1037,20 +1037,20 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   return (
                     <div 
                       key={row.mIdx} 
-                      className="flex items-center justify-between p-3.5 bg-[color:var(--md-sys-color-surface-container-low)] hover:bg-[color:var(--md-sys-color-surface-container-high)] rounded-2xl transition-colors duration-150 border border-[color:var(--md-sys-color-outline-variant)]/30"
+                      className="flex items-center justify-between p-4 bg-[color:var(--md-sys-color-surface-container-low)] hover:bg-[color:var(--md-sys-color-surface-container-high)] rounded-2xl transition-colors duration-150 border border-[color:var(--md-sys-color-outline-variant)]/30"
                     >
                       <div className="flex flex-col min-w-0">
                         <span className="font-semibold text-sm text-[color:var(--md-sys-color-on-surface)]">{row.name}</span>
-                        <div className="flex items-center gap-3 text-[11px] text-[color:var(--md-sys-color-on-surface-variant)] mt-0.5">
+                        <div className="flex items-center gap-3 text-[12px] text-[color:var(--md-sys-color-on-surface-variant)] mt-0.5">
                           {activeView !== 'tiktok' && (
                             <span className="flex items-center gap-1">
-                              <InstagramIcon size={12} className="text-red-500" />
+                              <InstagramIcon size={14} className="text-red-500" />
                               <strong className="font-mono font-medium">{fmtFull(row.ig)}</strong>
                             </span>
                           )}
                           {activeView !== 'instagram' && (
                             <span className="flex items-center gap-1">
-                              <TikTokIcon size={11} className="text-[#00acc1]" />
+                              <TikTokIcon size={14} className="text-[#00acc1]" />
                               <strong className="font-mono font-medium">{fmtFull(row.tt)}</strong>
                             </span>
                           )}
@@ -1091,7 +1091,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         contentNode = (
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-2.5">
-              <div className="flex items-center justify-between text-[10px] uppercase tracking-wider text-[color:var(--md-sys-color-on-surface-variant)] font-bold px-4 pb-1 border-b border-[color:var(--md-sys-color-outline-variant)]/30">
+              <div className="flex items-center justify-between text-[12px] uppercase tracking-wider text-[color:var(--md-sys-color-on-surface-variant)] font-bold px-4 pb-1 border-b border-[color:var(--md-sys-color-outline-variant)]/30">
                 <span>Konten</span>
                 <span>Views / Distribusi</span>
               </div>
@@ -1110,7 +1110,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     return (
                       <div 
                         key={item.id} 
-                        className="flex items-center justify-between p-3.5 bg-[color:var(--md-sys-color-surface-container-low)] hover:bg-[color:var(--md-sys-color-surface-container-high)] rounded-2xl transition-colors duration-150 border border-[color:var(--md-sys-color-outline-variant)]/30"
+                        className="flex items-center justify-between p-4 bg-[color:var(--md-sys-color-surface-container-low)] hover:bg-[color:var(--md-sys-color-surface-container-high)] rounded-2xl transition-colors duration-150 border border-[color:var(--md-sys-color-outline-variant)]/30"
                       >
                         <div className="flex items-center gap-3 min-w-0">
                           <div className="w-8 h-8 rounded-lg bg-[color:var(--md-sys-color-surface-container-high)] flex items-center justify-center shrink-0">
@@ -1120,16 +1120,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                             <span className="font-semibold text-sm text-[color:var(--md-sys-color-on-surface)] truncate max-w-[280px]" title={item.title}>
                               {item.title}
                             </span>
-                            <div className="flex items-center gap-3 text-[11px] text-[color:var(--md-sys-color-on-surface-variant)] mt-0.5">
+                            <div className="flex items-center gap-3 text-[12px] text-[color:var(--md-sys-color-on-surface-variant)] mt-0.5">
                               {activeView !== 'tiktok' && (
                                 <span className="flex items-center gap-1">
-                                  <InstagramIcon size={12} className="text-red-500" />
+                                  <InstagramIcon size={14} className="text-red-500" />
                                   <strong className="font-mono font-medium">{fmtFull(igViews)}</strong>
                                 </span>
                               )}
                               {activeView !== 'instagram' && (
                                 <span className="flex items-center gap-1">
-                                  <TikTokIcon size={11} className="text-[#00acc1]" />
+                                  <TikTokIcon size={14} className="text-[#00acc1]" />
                                   <strong className="font-mono font-medium">{fmtFull(ttViews)}</strong>
                                 </span>
                               )}
@@ -1181,7 +1181,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         contentNode = (
           <div className="flex flex-col gap-4">
             {bestMonth.count > 0 && (
-              <div className="flex items-center gap-3 p-3.5 bg-[color:var(--md-sys-color-secondary-container)]/30 border border-[color:var(--md-sys-color-secondary-container)]/50 rounded-2xl">
+              <div className="flex items-center gap-3 p-4 bg-[color:var(--md-sys-color-secondary-container)]/30 border border-[color:var(--md-sys-color-secondary-container)]/50 rounded-2xl">
                 <Video size={16} className="text-[color:var(--md-sys-color-secondary)] shrink-0" />
                 <span className="text-xs font-medium text-[color:var(--md-sys-color-on-surface)]">
                   Bulan paling produktif Anda adalah <strong className="text-[color:var(--md-sys-color-secondary)] font-semibold">{bestMonth.name}</strong> dengan memposting <strong className="text-[color:var(--md-sys-color-secondary)] font-semibold">{bestMonth.count}</strong> video.
@@ -1189,7 +1189,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </div>
             )}
             <div className="flex flex-col gap-2.5">
-              <div className="flex items-center justify-between text-[10px] uppercase tracking-wider text-[color:var(--md-sys-color-on-surface-variant)] font-bold px-4 pb-1 border-b border-[color:var(--md-sys-color-outline-variant)]/30">
+              <div className="flex items-center justify-between text-[12px] uppercase tracking-wider text-[color:var(--md-sys-color-on-surface-variant)] font-bold px-4 pb-1 border-b border-[color:var(--md-sys-color-outline-variant)]/30">
                 <span>Bulan</span>
                 <span>Jumlah Unggahan</span>
               </div>
@@ -1199,7 +1199,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   return (
                     <div 
                       key={row.mIdx} 
-                      className="flex items-center justify-between p-3.5 bg-[color:var(--md-sys-color-surface-container-low)] hover:bg-[color:var(--md-sys-color-surface-container-high)] rounded-2xl transition-colors duration-150 border border-[color:var(--md-sys-color-outline-variant)]/30"
+                      className="flex items-center justify-between p-4 bg-[color:var(--md-sys-color-surface-container-low)] hover:bg-[color:var(--md-sys-color-surface-container-high)] rounded-2xl transition-colors duration-150 border border-[color:var(--md-sys-color-outline-variant)]/30"
                     >
                       <span className="font-semibold text-sm text-[color:var(--md-sys-color-on-surface)]">{row.name}</span>
                       <div className="flex flex-col items-end shrink-0 pl-4">
@@ -1222,7 +1222,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         contentNode = (
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-2.5">
-              <div className="flex items-center justify-between text-[10px] uppercase tracking-wider text-[color:var(--md-sys-color-on-surface-variant)] font-bold px-4 pb-1 border-b border-[color:var(--md-sys-color-outline-variant)]/30">
+              <div className="flex items-center justify-between text-[12px] uppercase tracking-wider text-[color:var(--md-sys-color-on-surface-variant)] font-bold px-4 pb-1 border-b border-[color:var(--md-sys-color-outline-variant)]/30">
                 <span>Konten</span>
                 <span>Status Terbit</span>
               </div>
@@ -1236,7 +1236,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     return (
                       <div 
                         key={item.id} 
-                        className="flex items-center justify-between p-3.5 bg-[color:var(--md-sys-color-surface-container-low)] hover:bg-[color:var(--md-sys-color-surface-container-high)] rounded-2xl transition-colors duration-150 border border-[color:var(--md-sys-color-outline-variant)]/30"
+                        className="flex items-center justify-between p-4 bg-[color:var(--md-sys-color-surface-container-low)] hover:bg-[color:var(--md-sys-color-surface-container-high)] rounded-2xl transition-colors duration-150 border border-[color:var(--md-sys-color-outline-variant)]/30"
                       >
                         <div className="flex items-center gap-3 min-w-0">
                           <div className="w-8 h-8 rounded-lg bg-[color:var(--md-sys-color-surface-container-high)] flex items-center justify-center shrink-0">
@@ -1246,22 +1246,23 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                             <span className="font-semibold text-sm text-[color:var(--md-sys-color-on-surface)] truncate max-w-[280px]" title={item.title}>
                               {item.title}
                             </span>
-                            <div className="flex items-center gap-3 text-[11px] text-[color:var(--md-sys-color-on-surface-variant)] mt-0.5">
+                            <div className="flex items-center gap-3 text-[12px] text-[color:var(--md-sys-color-on-surface-variant)] mt-0.5">
                               {hasIG && (
-                                <span className="flex items-center gap-1 bg-[color:var(--md-sys-color-error-container)] text-[color:var(--md-sys-color-on-error-container)] px-2 py-0.5 rounded-full font-medium text-[10px]">
-                                  <InstagramIcon size={10} /> Instagram
+                                <span className="flex items-center gap-1 bg-[color:var(--md-sys-color-error-container)] text-[color:var(--md-sys-color-on-error-container)] px-2 py-0.5 rounded-full font-medium text-[12px]">
+                                  <InstagramIcon size={14} /> Instagram
                                 </span>
                               )}
                               {hasTT && (
-                                <span className="flex items-center gap-1 bg-[color:var(--md-sys-color-cyan-container)] text-[color:var(--md-sys-color-on-cyan-container)] px-2 py-0.5 rounded-full font-medium text-[10px]">
-                                  <TikTokIcon size={9} /> TikTok
+                                <span className="flex items-center gap-1 bg-[color:var(--md-sys-color-cyan-container)] text-[color:var(--md-sys-color-on-cyan-container)] px-2 py-0.5 rounded-full font-medium text-[12px]">
+                                  <TikTokIcon size={14} /> TikTok
                                 </span>
                               )}
                             </div>
                           </div>
                         </div>
                         <div className="flex items-center shrink-0 pl-4">
-                          <span className="inline-flex items-center text-xs text-green-600 dark:text-green-400 bg-green-500/10 px-2.5 py-1 rounded-full font-semibold">
+                          <span className="inline-flex items-center gap-1 text-xs text-green-600 dark:text-green-400 bg-green-500/10 px-3 py-1 rounded-full font-semibold">
+                            <Check size={14} />
                             Terbit
                           </span>
                         </div>
@@ -1296,7 +1297,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         contentNode = (
           <div className="flex flex-col gap-4">
             {bestMonth.rate > 0 && (
-              <div className="flex items-center gap-3 p-3.5 bg-teal-500/5 border border-teal-500/10 rounded-2xl">
+              <div className="flex items-center gap-3 p-4 bg-teal-500/5 border border-teal-500/10 rounded-2xl">
                 <Zap size={16} className="text-teal-500 shrink-0" />
                 <span className="text-xs font-medium text-[color:var(--md-sys-color-on-surface)]">
                   Interaksi tertinggi dicapai pada bulan <strong className="text-teal-500 font-semibold">{bestMonth.name}</strong> dengan rasio interaksi rata-rata <strong className="text-teal-500 font-semibold">{bestMonth.rate.toFixed(2)}%</strong>.
@@ -1304,7 +1305,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </div>
             )}
             <div className="flex flex-col gap-2.5">
-              <div className="flex items-center justify-between text-[10px] uppercase tracking-wider text-[color:var(--md-sys-color-on-surface-variant)] font-bold px-4 pb-1 border-b border-[color:var(--md-sys-color-outline-variant)]/30">
+              <div className="flex items-center justify-between text-[12px] uppercase tracking-wider text-[color:var(--md-sys-color-on-surface-variant)] font-bold px-4 pb-1 border-b border-[color:var(--md-sys-color-outline-variant)]/30">
                 <span>Bulan</span>
                 <span>Engagement Rate (ER)</span>
               </div>
@@ -1314,11 +1315,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   return (
                     <div 
                       key={row.mIdx} 
-                      className="flex items-center justify-between p-3.5 bg-[color:var(--md-sys-color-surface-container-low)] hover:bg-[color:var(--md-sys-color-surface-container-high)] rounded-2xl transition-colors duration-150 border border-[color:var(--md-sys-color-outline-variant)]/30"
+                      className="flex items-center justify-between p-4 bg-[color:var(--md-sys-color-surface-container-low)] hover:bg-[color:var(--md-sys-color-surface-container-high)] rounded-2xl transition-colors duration-150 border border-[color:var(--md-sys-color-outline-variant)]/30"
                     >
                       <div className="flex flex-col min-w-0">
                         <span className="font-semibold text-sm text-[color:var(--md-sys-color-on-surface)]">{row.name}</span>
-                        <span className="text-[11px] text-[color:var(--md-sys-color-on-surface-variant)] mt-0.5">
+                        <span className="text-[12px] text-[color:var(--md-sys-color-on-surface-variant)] mt-0.5">
                           Views: <strong className="font-mono font-medium">{fmtFull(row.totalViews)}</strong>
                         </span>
                       </div>
@@ -1347,7 +1348,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         contentNode = (
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-2.5">
-              <div className="flex items-center justify-between text-[10px] uppercase tracking-wider text-[color:var(--md-sys-color-on-surface-variant)] font-bold px-4 pb-1 border-b border-[color:var(--md-sys-color-outline-variant)]/30">
+              <div className="flex items-center justify-between text-[12px] uppercase tracking-wider text-[color:var(--md-sys-color-on-surface-variant)] font-bold px-4 pb-1 border-b border-[color:var(--md-sys-color-outline-variant)]/30">
                 <span>Konten</span>
                 <span>Engagement Rate</span>
               </div>
@@ -1362,7 +1363,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     return (
                       <div 
                         key={item.id} 
-                        className="flex items-center justify-between p-3.5 bg-[color:var(--md-sys-color-surface-container-low)] hover:bg-[color:var(--md-sys-color-surface-container-high)] rounded-2xl transition-colors duration-150 border border-[color:var(--md-sys-color-outline-variant)]/30"
+                        className="flex items-center justify-between p-4 bg-[color:var(--md-sys-color-surface-container-low)] hover:bg-[color:var(--md-sys-color-surface-container-high)] rounded-2xl transition-colors duration-150 border border-[color:var(--md-sys-color-outline-variant)]/30"
                       >
                         <div className="flex items-center gap-3 min-w-0">
                           <div className="w-8 h-8 rounded-lg bg-[color:var(--md-sys-color-surface-container-high)] flex items-center justify-center shrink-0">
@@ -1372,7 +1373,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                             <span className="font-semibold text-sm text-[color:var(--md-sys-color-on-surface)] truncate max-w-[250px]" title={item.title}>
                               {item.title}
                             </span>
-                            <div className="flex items-center gap-3 text-[11px] text-[color:var(--md-sys-color-on-surface-variant)] mt-0.5">
+                            <div className="flex items-center gap-3 text-[12px] text-[color:var(--md-sys-color-on-surface-variant)] mt-0.5">
                               <span>Views: <strong className="font-mono font-medium">{fmtFull(m.views)}</strong></span>
                               <span className="text-[color:var(--md-sys-color-outline)]/40">•</span>
                               <span>Interaksi: <strong className="font-mono font-medium">{fmtFull(interaksi)}</strong></span>
@@ -1415,7 +1416,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       contentNode = (
         <div className="flex flex-col gap-4">
           {fypContents.length > 0 && (
-            <div className="flex items-center gap-3 p-3.5 bg-amber-500/5 border border-amber-500/10 rounded-2xl">
+            <div className="flex items-center gap-3 p-4 bg-amber-500/5 border border-amber-500/10 rounded-2xl">
               <Sparkles size={16} className="text-amber-500 shrink-0" />
               <span className="text-xs font-medium text-[color:var(--md-sys-color-on-surface)]">
                 Hebat! Ada <strong className="text-amber-500 font-semibold">{fypContents.length}</strong> konten yang sukses melampaui target FYP &gt; 20K.
@@ -1423,7 +1424,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
           )}
           <div className="flex flex-col gap-2.5">
-            <div className="flex items-center justify-between text-[10px] uppercase tracking-wider text-[color:var(--md-sys-color-on-surface-variant)] font-bold px-4 pb-1 border-b border-[color:var(--md-sys-color-outline-variant)]/30">
+            <div className="flex items-center justify-between text-[12px] uppercase tracking-wider text-[color:var(--md-sys-color-on-surface-variant)] font-bold px-4 pb-1 border-b border-[color:var(--md-sys-color-outline-variant)]/30">
               <span>{isYear ? 'Tanggal / Bulan' : 'Konten'}</span>
               <span>Views / Distribusi</span>
             </div>
@@ -1453,26 +1454,26 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   return (
                     <div 
                       key={item.id} 
-                      className="flex items-center justify-between p-3.5 bg-[color:var(--md-sys-color-surface-container-low)] hover:bg-[color:var(--md-sys-color-surface-container-high)] rounded-2xl transition-colors duration-150 border border-[color:var(--md-sys-color-outline-variant)]/30"
+                      className="flex items-center justify-between p-4 bg-[color:var(--md-sys-color-surface-container-low)] hover:bg-[color:var(--md-sys-color-surface-container-high)] rounded-2xl transition-colors duration-150 border border-[color:var(--md-sys-color-outline-variant)]/30"
                     >
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="w-12 h-8 rounded-lg bg-[color:var(--md-sys-color-surface-container-high)] flex items-center justify-center shrink-0">
-                          <span className="text-[10px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] font-mono whitespace-nowrap px-1">{dateLabel}</span>
+                          <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] font-mono whitespace-nowrap px-1">{dateLabel}</span>
                         </div>
                         <div className="flex flex-col min-w-0">
                           <span className="font-semibold text-sm text-[color:var(--md-sys-color-on-surface)] truncate max-w-[280px]" title={item.title}>
                             {item.title}
                           </span>
-                          <div className="flex items-center gap-3 text-[11px] text-[color:var(--md-sys-color-on-surface-variant)] mt-0.5">
+                          <div className="flex items-center gap-3 text-[12px] text-[color:var(--md-sys-color-on-surface-variant)] mt-0.5">
                             {activeView !== 'tiktok' && (
                               <span className="flex items-center gap-1">
-                                <InstagramIcon size={12} className="text-red-500" />
+                                <InstagramIcon size={14} className="text-red-500" />
                                 <strong className="font-mono font-medium">{fmtFull(item.instagram.views)}</strong>
                               </span>
                             )}
                             {activeView !== 'instagram' && (
                               <span className="flex items-center gap-1">
-                                <TikTokIcon size={11} className="text-[#00acc1]" />
+                                <TikTokIcon size={14} className="text-[#00acc1]" />
                                 <strong className="font-mono font-medium">{fmtFull(item.tiktok.views)}</strong>
                               </span>
                             )}
@@ -1550,35 +1551,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   return (
     <div className="flex-1 flex flex-col h-screen overflow-hidden bg-[color:var(--md-sys-color-background)] text-[color:var(--md-sys-color-on-surface)]">
 
-      {/* 1. Header Toolbar */}
-      <div className="flex flex-wrap sm:flex-nowrap gap-4 items-center justify-end py-3 px-6 shrink-0 border-b border-[color:var(--md-sys-color-outline-variant)] bg-[color:var(--md-sys-color-surface)]">
-        <div className="flex items-center gap-3">
-          <MacDropdown
-            value={selectedMonth}
-            onChange={onSelectMonth}
-            options={monthOptions}
-          />
-          <MacDropdown
-            value={selectedYear}
-            onChange={onSelectYear}
-            options={yearOptions}
-          />
-
-          <button
-            onClick={onToggleTheme}
-            className="md-icon-btn"
-            title={isDarkMode ? 'Light Mode' : 'Dark Mode'}
-          >
-            {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
-        </div>
-      </div>
-
-      {/* 2. Scrollable Body */}
+      {/* Scrollable Body */}
       <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
 
         {/* Title Area */}
-        <div className="flex justify-between items-end">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1
               className="text-[28px] font-semibold tracking-tight text-[color:var(--md-sys-color-on-surface)]"
@@ -1589,13 +1566,30 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <p className="text-sm text-[color:var(--md-sys-color-on-surface-variant)] mt-1">
               Performance overview for {MONTH_NAMES[selectedMonth]} {selectedYear}
             </p>
+            {activeView !== 'dashboard' && (
+              <p className="text-[12px] text-[color:var(--md-sys-color-on-surface-variant)] mt-1.5 flex items-center gap-1.5 select-none">
+                <span className="font-semibold text-[color:var(--md-sys-color-on-surface)]">
+                  @{activeView === 'instagram' ? profiles.instagram.username : profiles.tiktok.username}
+                </span>
+                <span className="text-[color:var(--md-sys-color-outline-variant)]">•</span>
+                <span>
+                  Total Followers: <strong className="font-semibold text-[color:var(--md-sys-color-on-surface)]">{fmtFull(currentFollowers)}</strong>
+                </span>
+              </p>
+            )}
           </div>
-          {activeView !== 'dashboard' && (
-            <div className="text-right">
-              <span className="text-2xl font-bold tracking-tight">{fmtFull(currentFollowers)}</span>
-              <span className="text-xs text-[color:var(--md-sys-color-on-surface-variant)] uppercase block">Followers</span>
-            </div>
-          )}
+          <div className="flex items-center gap-3">
+            <MacDropdown
+              value={selectedMonth}
+              onChange={onSelectMonth}
+              options={monthOptions}
+            />
+            <MacDropdown
+              value={selectedYear}
+              onChange={onSelectYear}
+              options={yearOptions}
+            />
+          </div>
         </div>
 
         {/* SECTION: STAT CARDS GRID */}
@@ -1608,13 +1602,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               }
             </h3>
             {/* Segmented button: Monthly / Annual */}
-            <div className="flex border border-[color:var(--md-sys-color-outline)] rounded-full p-0.5 self-start sm:self-auto select-none">
+            <div className="flex h-11 items-center border border-[color:var(--md-sys-color-outline)] rounded-full p-1 self-start sm:self-auto select-none">
               <button
                 type="button"
                 onClick={() => setSummaryPeriod('month')}
-                className={`px-4 py-1.5 text-xs font-medium rounded-full transition-colors duration-150 cursor-pointer ${
+                className={`px-4 h-9 flex items-center justify-center text-[13px] font-medium rounded-full transition-colors duration-150 cursor-pointer ${
                   summaryPeriod === 'month'
-                    ? 'bg-[color:var(--md-sys-color-secondary-container,var(--md-sys-color-surface-variant))] text-[color:var(--md-sys-color-on-secondary-container,var(--md-sys-color-primary))]'
+                    ? 'bg-[color:var(--md-sys-color-secondary-container,var(--md-sys-color-surface-variant))] text-[color:var(--md-sys-color-on-secondary-container,var(--md-sys-color-primary))] font-semibold'
                     : 'text-[color:var(--md-sys-color-on-surface-variant)] hover:bg-[color:var(--md-sys-color-surface-container-high)]'
                 }`}
               >
@@ -1623,9 +1617,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <button
                 type="button"
                 onClick={() => setSummaryPeriod('year')}
-                className={`px-4 py-1.5 text-xs font-medium rounded-full transition-colors duration-150 cursor-pointer ${
+                className={`px-4 h-9 flex items-center justify-center text-[13px] font-medium rounded-full transition-colors duration-150 cursor-pointer ${
                   summaryPeriod === 'year'
-                    ? 'bg-[color:var(--md-sys-color-secondary-container,var(--md-sys-color-surface-variant))] text-[color:var(--md-sys-color-on-secondary-container,var(--md-sys-color-primary))]'
+                    ? 'bg-[color:var(--md-sys-color-secondary-container,var(--md-sys-color-surface-variant))] text-[color:var(--md-sys-color-on-secondary-container,var(--md-sys-color-primary))] font-semibold'
                     : 'text-[color:var(--md-sys-color-on-surface-variant)] hover:bg-[color:var(--md-sys-color-surface-container-high)]'
                 }`}
               >
@@ -1702,7 +1696,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                                     <div style={{ width: `${igPct}%` }} className="h-full bg-[#ea4335]" />
                                     <div style={{ width: `${ttPct}%` }} className="h-full bg-[#00acc1]" />
                                   </div>
-                                  <div className="flex justify-between text-[8px] font-bold uppercase tracking-wider text-[color:var(--md-sys-color-on-surface-variant)]">
+                                  <div className="flex justify-between text-[12px] font-bold uppercase tracking-wider text-[color:var(--md-sys-color-on-surface-variant)]">
                                     <span>IG: {fmt(igViews)} ({igPct}%)</span>
                                     <span>TT: {fmt(ttViews)} ({ttPct}%)</span>
                                   </div>
@@ -1713,13 +1707,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                             <div className="flex items-center gap-6 self-end sm:self-center shrink-0 border-t border-[color:var(--md-sys-color-outline-variant)] sm:border-0 pt-2 sm:pt-0">
                               <div className="flex flex-col items-end">
                                 <span className="text-sm font-bold text-[color:var(--md-sys-color-on-surface)]">{fmtFull(getMetrics(content).views)}</span>
-                                <span className="text-[9px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider mt-0.5">
+                                <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider mt-0.5">
                                   Views
                                 </span>
                               </div>
                               <div className="flex flex-col items-end">
                                 <span className="text-sm font-bold text-[color:var(--md-sys-color-on-surface)]">{fmtFull(getMetrics(content).likes)}</span>
-                                <span className="text-[9px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider mt-0.5">
+                                <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider mt-0.5">
                                   Likes
                                 </span>
                               </div>
@@ -1744,7 +1738,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   </h3>
                   <button
                     onClick={() => setExpandedChart('monthly-combined')}
-                    className="md-icon-btn-sm"
+                    className="md-icon-btn"
                     title="Expand Chart"
                   >
                     <Maximize2 size={14} />
@@ -1760,13 +1754,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       />
                       <XAxis
                         dataKey="shortName"
-                        tick={{ fill: isDarkMode ? '#bdc1c6' : '#5f6368', fontSize: 11 }}
+                        tick={{ fill: isDarkMode ? '#bdc1c6' : '#5f6368', fontSize: 12 }}
                         axisLine={{ stroke: isDarkMode ? '#3c4043' : '#dadce0' }}
                         tickLine={false}
                       />
                       <YAxis
                         width={40}
-                        tick={{ fill: isDarkMode ? '#bdc1c6' : '#5f6368', fontSize: 11 }}
+                        tick={{ fill: isDarkMode ? '#bdc1c6' : '#5f6368', fontSize: 12 }}
                         axisLine={false}
                         tickLine={false}
                         tickFormatter={(v) => fmt(v)}
@@ -1814,7 +1808,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
               {/* Calendar */}
               <div>
-                <h3 className="text-[11px] font-semibold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider mb-3 border-b border-[color:var(--md-sys-color-outline-variant)] pb-1.5">
+                <h3 className="text-[12px] font-semibold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider mb-3 border-b border-[color:var(--md-sys-color-outline-variant)] pb-1.5">
                   Upload Activity - {MONTH_NAMES[selectedMonth]} {selectedYear}
                 </h3>
                 <CalendarWidget
@@ -1834,15 +1828,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             {/* Monthly Views Trend */}
             <div className="border border-[color:var(--md-sys-color-outline-variant)] rounded-lg p-4 shadow-sm">
               <div className="flex justify-between items-center mb-3 border-b border-[color:var(--md-sys-color-outline-variant)] pb-1.5">
-                <h3 className="text-[11px] font-semibold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider">
+                <h3 className="text-[12px] font-semibold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider">
                   Monthly Views Trend
                 </h3>
                 <button
                   onClick={() => setExpandedChart('monthly-platform')}
-                  className="p-1 rounded hover:bg-[color:var(--md-sys-color-surface-variant)] text-[color:var(--md-sys-color-on-surface-variant)] hover:text-[color:var(--md-sys-color-on-surface)] transition-all duration-150"
+                  className="md-icon-btn"
                   title="Perbesar Grafik"
                 >
-                  <Maximize2 size={12} />
+                  <Maximize2 size={14} />
                 </button>
               </div>
               <div className="h-48 w-full mt-2">
@@ -1855,13 +1849,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     />
                     <XAxis
                       dataKey="name"
-                      tick={{ fill: isDarkMode ? '#bdc1c6' : '#5f6368', fontSize: 11 }}
+                      tick={{ fill: isDarkMode ? '#bdc1c6' : '#5f6368', fontSize: 12 }}
                       axisLine={{ stroke: isDarkMode ? '#3c4043' : '#dadce0' }}
                       tickLine={false}
                     />
                     <YAxis
                       width={40}
-                      tick={{ fill: isDarkMode ? '#bdc1c6' : '#5f6368', fontSize: 11 }}
+                      tick={{ fill: isDarkMode ? '#bdc1c6' : '#5f6368', fontSize: 12 }}
                       axisLine={false}
                       tickLine={false}
                       tickFormatter={(v) => fmt(v)}
@@ -1884,15 +1878,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             {/* Daily Views Trend */}
             <div className="border border-[color:var(--md-sys-color-outline-variant)] rounded-lg p-4 shadow-sm">
               <div className="flex justify-between items-center mb-3 border-b border-[color:var(--md-sys-color-outline-variant)] pb-1.5">
-                <h3 className="text-[11px] font-semibold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider">
+                <h3 className="text-[12px] font-semibold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider">
                   Daily Views Trend
                 </h3>
                 <button
                   onClick={() => setExpandedChart('daily')}
-                  className="p-1 rounded hover:bg-[color:var(--md-sys-color-surface-variant)] text-[color:var(--md-sys-color-on-surface-variant)] hover:text-[color:var(--md-sys-color-on-surface)] transition-all duration-150"
+                  className="md-icon-btn"
                   title="Perbesar Grafik"
                 >
-                  <Maximize2 size={12} />
+                  <Maximize2 size={14} />
                 </button>
               </div>
               <div className="h-48 w-full mt-2">
@@ -1905,13 +1899,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     />
                     <XAxis
                       dataKey="label"
-                      tick={{ fill: isDarkMode ? '#bdc1c6' : '#5f6368', fontSize: 11 }}
+                      tick={{ fill: isDarkMode ? '#bdc1c6' : '#5f6368', fontSize: 12 }}
                       axisLine={{ stroke: isDarkMode ? '#3c4043' : '#dadce0' }}
                       tickLine={false}
                     />
                     <YAxis
                       width={40}
-                      tick={{ fill: isDarkMode ? '#bdc1c6' : '#5f6368', fontSize: 11 }}
+                      tick={{ fill: isDarkMode ? '#bdc1c6' : '#5f6368', fontSize: 12 }}
                       axisLine={false}
                       tickLine={false}
                       tickFormatter={(v) => fmt(v)}
@@ -1938,7 +1932,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             {/* Weekly Cycle Trend */}
             <div className="border border-[color:var(--md-sys-color-outline-variant)] rounded-lg p-4 shadow-sm">
               <div className="flex justify-between items-center mb-3 border-b border-[color:var(--md-sys-color-outline-variant)] pb-1.5 gap-2">
-                <h3 className="text-[11px] font-semibold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider shrink-0">
+                <h3 className="text-[12px] font-semibold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider shrink-0">
                   Weekly Cycle
                 </h3>
                 <div className="flex items-center gap-1.5 min-w-0">
@@ -1946,15 +1940,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     value={safeWeekIndex}
                     onChange={setSelectedCycleWeek}
                     options={weekOptions}
-                    size="sm"
                     className="max-w-[140px]"
                   />
                   <button
                     onClick={() => setExpandedChart('cycle')}
-                    className="p-1 rounded hover:bg-[color:var(--md-sys-color-surface-variant)] text-[color:var(--md-sys-color-on-surface-variant)] hover:text-[color:var(--md-sys-color-on-surface)] transition-all duration-150 shrink-0"
+                    className="md-icon-btn shrink-0"
                     title="Perbesar Grafik"
                   >
-                    <Maximize2 size={12} />
+                    <Maximize2 size={14} />
                   </button>
                 </div>
               </div>
@@ -1968,13 +1961,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     />
                     <XAxis
                       dataKey="shortName"
-                      tick={{ fill: isDarkMode ? '#bdc1c6' : '#5f6368', fontSize: 11 }}
+                      tick={{ fill: isDarkMode ? '#bdc1c6' : '#5f6368', fontSize: 12 }}
                       axisLine={{ stroke: isDarkMode ? '#3c4043' : '#dadce0' }}
                       tickLine={false}
                     />
                     <YAxis
                       width={50}
-                      tick={{ fill: isDarkMode ? '#bdc1c6' : '#5f6368', fontSize: 11 }}
+                      tick={{ fill: isDarkMode ? '#bdc1c6' : '#5f6368', fontSize: 12 }}
                       axisLine={false}
                       tickLine={false}
                       tickFormatter={(v) => fmt(v)}
@@ -2002,7 +1995,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         {/* SECTION: TOP CONTENT LIST (For individual accounts, displayed below the charts) */}
         {activeView !== 'dashboard' && (
           <div className="mt-6">
-            <h3 className="text-[11px] font-semibold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider mb-3 border-b border-[color:var(--md-sys-color-outline-variant)] pb-1.5">
+            <h3 className="text-[12px] font-semibold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider mb-3 border-b border-[color:var(--md-sys-color-outline-variant)] pb-1.5">
               Top Performing Content - {MONTH_NAMES[selectedMonth]} {selectedYear}
             </h3>
             {bestContents.length === 0 ? (
@@ -2040,7 +2033,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                               {isFirst && <Crown size={14} className="text-[#f2a918] shrink-0" />}
                             </div>
 
-                            <span className="text-[9px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider mt-1">
+                            <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider mt-1">
                               {activeView.toUpperCase()} • DAY {content.day}
                             </span>
                           </div>
@@ -2049,31 +2042,31 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 lg:justify-end shrink-0 border-t border-[color:var(--md-sys-color-outline-variant)] lg:border-0 pt-2 lg:pt-0">
                           <div className="flex flex-col items-end min-w-[70px]">
                             <span className="text-sm font-bold text-[color:var(--md-sys-color-on-surface)]">{fmtFull(metrics.views)}</span>
-                            <span className="text-[9px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider mt-0.5">
+                            <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider mt-0.5">
                               Views
                             </span>
                           </div>
                           <div className="flex flex-col items-end min-w-[70px]">
                             <span className="text-sm font-bold text-[color:var(--md-sys-color-on-surface)]">{fmtFull(metrics.likes)}</span>
-                            <span className="text-[9px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider mt-0.5">
+                            <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider mt-0.5">
                               Likes
                             </span>
                           </div>
                           <div className="flex flex-col items-end min-w-[70px]">
                             <span className="text-sm font-bold text-[color:var(--md-sys-color-on-surface)]">{fmtFull(metrics.comments)}</span>
-                            <span className="text-[9px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider mt-0.5">
+                            <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider mt-0.5">
                               Comments
                             </span>
                           </div>
                           <div className="flex flex-col items-end min-w-[70px]">
                             <span className="text-sm font-bold text-[color:var(--md-sys-color-on-surface)]">{fmtFull(metrics.saves)}</span>
-                            <span className="text-[9px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider mt-0.5">
+                            <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider mt-0.5">
                               Saves
                             </span>
                           </div>
                           <div className="flex flex-col items-end min-w-[70px]">
                             <span className="text-sm font-bold text-[color:var(--md-sys-color-on-surface)]">{fmtFull(metrics.shares)}</span>
-                            <span className="text-[9px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider mt-0.5">
+                            <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider mt-0.5">
                               Shares
                             </span>
                           </div>

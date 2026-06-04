@@ -186,6 +186,8 @@ function App() {
         onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
         onExportData={handleExportData}
         onImportData={handleImportData}
+        isDarkMode={isDarkMode}
+        onToggleTheme={handleToggleTheme}
       />
 
       {/* 2. Right Pane content routing */}
@@ -197,8 +199,6 @@ function App() {
           onAddContentClick={handleOpenAddPopup}
           onEditContentClick={handleOpenEditPopup}
           onDeleteContent={setContentToDeleteId} // Triggers custom deletion modal!
-          isDarkMode={isDarkMode}
-          onToggleTheme={handleToggleTheme}
         />
       ) : (
         <DashboardView
@@ -211,7 +211,6 @@ function App() {
           onSelectYear={setSelectedYear}
           years={years}
           isDarkMode={isDarkMode}
-          onToggleTheme={handleToggleTheme}
         />
       )}
 
@@ -316,7 +315,7 @@ function App() {
             max-w-[480px] w-auto min-w-[280px]
             bg-[color:var(--md-sys-color-surface-container-highest,var(--md-sys-color-surface-variant))]
             text-[color:var(--md-sys-color-on-surface)]
-            px-4 py-3.5 rounded-2xl
+            px-4 py-4 rounded-2xl
             flex items-center gap-3
             shadow-[var(--md-elevation-3)]
             pointer-events-auto select-none

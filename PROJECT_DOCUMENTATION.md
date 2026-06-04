@@ -23,6 +23,7 @@ Berikut adalah peta struktur berkas proyek beserta fungsionalitas detail dari ma
 ```text
 Asrep/
 ├── DESIGN.md                 # Spesifikasi token desain (Meta-design-analysis)
+├── UIUX_DOCUMENTATION.md     # Panduan token, prinsip, spasi, & aksesibilitas UI/UX
 ├── README.md                 # Panduan dasar proyek (Material Design 3 setup)
 ├── package.json              # Dependensi proyek & npx/npm scripts
 ├── postcss.config.js         # Konfigurasi preprosesor PostCSS

@@ -286,7 +286,7 @@ export const ContentPopup: React.FC<ContentPopupProps> = ({
                     <p className="md-label-large text-[color:var(--md-sys-color-on-surface-variant)]">Instagram Off</p>
                     <p className="md-body-small text-[color:var(--md-sys-color-on-surface-variant)] mt-1 max-w-[160px]">Not tracking Instagram stats for this entry.</p>
                   </div>
-                  <button type="button" onClick={() => setIsInstagramActive(true)} className="gai-btn-outlined" style={{ height: 32, padding: '0 16px', fontSize: 12 }}>
+                  <button type="button" onClick={() => setIsInstagramActive(true)} className="gai-btn-outlined">
                     Enable
                   </button>
                 </div>
@@ -339,7 +339,7 @@ export const ContentPopup: React.FC<ContentPopupProps> = ({
                     <p className="md-label-large text-[color:var(--md-sys-color-on-surface-variant)]">TikTok Off</p>
                     <p className="md-body-small text-[color:var(--md-sys-color-on-surface-variant)] mt-1 max-w-[160px]">Not tracking TikTok stats for this entry.</p>
                   </div>
-                  <button type="button" onClick={() => setIsTiktokActive(true)} className="gai-btn-outlined" style={{ height: 32, padding: '0 16px', fontSize: 12 }}>
+                  <button type="button" onClick={() => setIsTiktokActive(true)} className="gai-btn-outlined">
                     Enable
                   </button>
                 </div>

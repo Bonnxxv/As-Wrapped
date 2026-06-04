@@ -5,9 +5,7 @@ import {
   Edit3, 
   FolderOpen, 
   Sparkles,
-  Search,
-  Sun,
-  Moon
+  Search
 } from 'lucide-react';
 import { ContentEntry } from '../types';
 import { MONTH_NAMES } from '../utils/initialState';
@@ -20,8 +18,6 @@ interface MonthFolderViewProps {
   onAddContentClick: () => void;
   onEditContentClick: (entry: ContentEntry) => void;
   onDeleteContent: (id: string) => void;
-  isDarkMode: boolean;
-  onToggleTheme: () => void;
 }
 
 export const MonthFolderView: React.FC<MonthFolderViewProps> = ({
@@ -30,9 +26,7 @@ export const MonthFolderView: React.FC<MonthFolderViewProps> = ({
   contents,
   onAddContentClick,
   onEditContentClick,
-  onDeleteContent,
-  isDarkMode,
-  onToggleTheme
+  onDeleteContent
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [groupBy, setGroupBy] = useState<'none' | 'instagram' | 'tiktok' | 'fyp'>('none');
@@ -118,14 +112,6 @@ export const MonthFolderView: React.FC<MonthFolderViewProps> = ({
             <Plus size={14} />
             <span>New Content</span>
           </button>
-
-          <button
-            onClick={onToggleTheme}
-            className="md-icon-btn"
-            title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-          >
-            {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
         </div>
       </div>
 
@@ -167,7 +153,6 @@ export const MonthFolderView: React.FC<MonthFolderViewProps> = ({
                 onClick={() => setGroupBy(key)}
                 type="button"
                 className={`md-chip ${groupBy === key ? 'active' : ''}`}
-                style={{ height: 32 }}
               >
                 {label}
               </button>
@@ -204,34 +189,34 @@ export const MonthFolderView: React.FC<MonthFolderViewProps> = ({
               {/* Head */}
               <thead>
                 <tr className="bg-[color:var(--md-sys-color-surface-container)]">
-                  <th className="py-3.5 px-4 text-center w-12 border-b border-[color:var(--md-sys-color-outline-variant)]">
+                  <th className="py-4 px-4 text-center w-12 border-b border-[color:var(--md-sys-color-outline-variant)]">
                     <span className="md-label-small text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-widest">Day</span>
                   </th>
-                  <th className="py-3.5 px-4 min-w-[200px] border-b border-[color:var(--md-sys-color-outline-variant)]">
+                  <th className="py-4 px-4 min-w-[200px] border-b border-[color:var(--md-sys-color-outline-variant)]">
                     <span className="md-label-small text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-widest">Title</span>
                   </th>
-                  <th className="py-3.5 px-3 text-center w-12 border-b border-[color:var(--md-sys-color-outline-variant)]">
+                  <th className="py-4 px-3 text-center w-12 border-b border-[color:var(--md-sys-color-outline-variant)]">
                     <span className="md-label-small text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-widest">App</span>
                   </th>
-                  <th className="py-3.5 px-4 text-right border-b border-[color:var(--md-sys-color-outline-variant)]">
+                  <th className="py-4 px-4 text-right border-b border-[color:var(--md-sys-color-outline-variant)]">
                     <span className="md-label-small text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-widest">Views</span>
                   </th>
-                  <th className="py-3.5 px-4 text-right border-b border-[color:var(--md-sys-color-outline-variant)]">
+                  <th className="py-4 px-4 text-right border-b border-[color:var(--md-sys-color-outline-variant)]">
                     <span className="md-label-small text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-widest">Likes</span>
                   </th>
-                  <th className="py-3.5 px-4 text-right border-b border-[color:var(--md-sys-color-outline-variant)]">
+                  <th className="py-4 px-4 text-right border-b border-[color:var(--md-sys-color-outline-variant)]">
                     <span className="md-label-small text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-widest">Comments</span>
                   </th>
-                  <th className="py-3.5 px-4 text-right border-b border-[color:var(--md-sys-color-outline-variant)]">
+                  <th className="py-4 px-4 text-right border-b border-[color:var(--md-sys-color-outline-variant)]">
                     <span className="md-label-small text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-widest">Saves</span>
                   </th>
-                  <th className="py-3.5 px-4 text-right border-b border-[color:var(--md-sys-color-outline-variant)]">
+                  <th className="py-4 px-4 text-right border-b border-[color:var(--md-sys-color-outline-variant)]">
                     <span className="md-label-small text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-widest">Shares</span>
                   </th>
-                  <th className="py-3.5 px-4 text-center w-20 border-b border-[color:var(--md-sys-color-outline-variant)]">
+                  <th className="py-4 px-4 text-center w-20 border-b border-[color:var(--md-sys-color-outline-variant)]">
                     <span className="md-label-small text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-widest">Badge</span>
                   </th>
-                  <th className="py-3.5 px-4 text-center w-20 border-b border-[color:var(--md-sys-color-outline-variant)]">
+                  <th className="py-4 px-4 text-center w-20 border-b border-[color:var(--md-sys-color-outline-variant)]">
                     <span className="md-label-small text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-widest">Actions</span>
                   </th>
                 </tr>
@@ -287,8 +272,8 @@ export const MonthFolderView: React.FC<MonthFolderViewProps> = ({
                             <td className="py-4 px-4 text-right tabular-nums border-b border-[color:var(--md-sys-color-outline-variant)]/30">{fmtFull(item.instagram.shares)}</td>
                             <td className="py-4 px-4 text-center border-b border-[color:var(--md-sys-color-outline-variant)]/30">
                               {igFyp
-                                ? <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[color:var(--md-sys-color-yellow-container)] text-[color:var(--md-sys-color-on-yellow-container)] text-[10px] font-semibold"><Sparkles size={8} /> FYP</span>
-                                : <span className="text-[color:var(--md-sys-color-outline)]/40 text-[10px]">—</span>
+                                ? <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[color:var(--md-sys-color-yellow-container)] text-[color:var(--md-sys-color-on-yellow-container)] text-[12px] font-semibold"><Sparkles size={11} /> FYP</span>
+                                : <span className="text-[color:var(--md-sys-color-outline)]/40 text-[12px]">—</span>
                               }
                             </td>
 
@@ -336,8 +321,8 @@ export const MonthFolderView: React.FC<MonthFolderViewProps> = ({
                             <td className="py-4 px-4 text-right tabular-nums">{fmtFull(item.tiktok.shares)}</td>
                             <td className="py-4 px-4 text-center">
                               {ttFyp
-                                ? <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[color:var(--md-sys-color-yellow-container)] text-[color:var(--md-sys-color-on-yellow-container)] text-[10px] font-semibold"><Sparkles size={8} /> FYP</span>
-                                : <span className="text-[color:var(--md-sys-color-outline)]/40 text-[10px]">—</span>
+                                ? <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[color:var(--md-sys-color-yellow-container)] text-[color:var(--md-sys-color-on-yellow-container)] text-[12px] font-semibold"><Sparkles size={11} /> FYP</span>
+                                : <span className="text-[color:var(--md-sys-color-outline)]/40 text-[12px]">—</span>
                               }
                             </td>
                             {!showIg && (
