@@ -20,7 +20,7 @@ interface MonthFolderViewProps {
   onDeleteContent: (id: string) => void;
 }
 
-export const MonthFolderView: React.FC<MonthFolderViewProps> = ({
+export const MonthFolderView: React.FC<MonthFolderViewProps> = React.memo(({
   year,
   monthIndex,
   contents,
@@ -360,4 +360,4 @@ export const MonthFolderView: React.FC<MonthFolderViewProps> = ({
       </div>
     </div>
   );
-};
+});

@@ -120,7 +120,7 @@ const SmallDialog: React.FC<SmallDialogProps> = ({ show, onClose, children }) =>
   );
 };
 
-export const MacSidebar: React.FC<MacSidebarProps> = ({
+export const MacSidebar: React.FC<MacSidebarProps> = React.memo(({
   years,
   profiles,
   activeView,
@@ -149,6 +149,7 @@ export const MacSidebar: React.FC<MacSidebarProps> = ({
 
   const [collapsedYears, setCollapsedYears] = useState<Record<number, boolean>>({ 2026: false });
   const [isAddingYear, setIsAddingYear] = useState(false);
+  const [isSystemCollapsed, setIsSystemCollapsed] = useState(true);
   const [newYearInput, setNewYearInput] = useState('');
   const [editingPlatform, setEditingPlatform] = useState<PlatformType | null>(null);
   const [editUsername, setEditUsername] = useState('');
@@ -411,12 +412,36 @@ export const MacSidebar: React.FC<MacSidebarProps> = ({
       </div>
 
       {/* ─── Bottom: System Actions ───── */}
-      <div className="shrink-0 border-t border-[color:var(--md-sys-color-outline-variant)] py-3 px-3 flex flex-col gap-2">
-        <div className={`${sectionLabel} transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden ${isCollapsed ? 'max-w-0 opacity-0 py-0 my-0 h-0 pointer-events-none' : 'max-w-[150px] opacity-100 px-1'}`}>
-          System
-        </div>
+      <div className="shrink-0 border-t border-[color:var(--md-sys-color-outline-variant)] py-3 px-3 flex flex-col">
+        {isCollapsed ? (
+          <button
+            onClick={() => setIsSystemCollapsed(!isSystemCollapsed)}
+            className="w-11 h-11 rounded-full md-icon-btn self-center flex items-center justify-center text-[color:var(--md-sys-color-on-surface-variant)] hover:bg-[color:var(--md-sys-color-surface-container-high)] hover:text-[color:var(--md-sys-color-on-surface)]"
+            title={isSystemCollapsed ? "Expand System Actions" : "Collapse System Actions"}
+          >
+            <ChevronDown
+              size={18}
+              className={`transform transition-transform duration-200 ${isSystemCollapsed ? '' : 'rotate-180'}`}
+            />
+          </button>
+        ) : (
+          <button
+            onClick={() => setIsSystemCollapsed(!isSystemCollapsed)}
+            className="flex items-center justify-between w-full text-[12px] font-medium text-[color:var(--md-sys-color-on-surface-variant)] px-1 mb-1 tracking-[.5px] select-none uppercase hover:text-[color:var(--md-sys-color-on-surface)] transition-colors duration-150"
+            title={isSystemCollapsed ? "Expand System Actions" : "Collapse System Actions"}
+          >
+            <span>System</span>
+            <ChevronDown
+              size={14}
+              className={`transform transition-transform duration-200 ${isSystemCollapsed ? '' : 'rotate-180'}`}
+            />
+          </button>
+        )}
 
-        <div className="flex flex-col gap-2">
+        <div
+          className={`flex flex-col gap-2 transition-all duration-300 ease-in-out overflow-hidden
+            ${isSystemCollapsed ? 'max-h-0 opacity-0 pointer-events-none' : 'max-h-[200px] opacity-100 mt-2'}`}
+        >
           <button
             onClick={onToggleTheme}
             className={`flex items-center justify-center transition-all duration-300 shrink-0 select-none cursor-pointer overflow-hidden
@@ -591,4 +616,4 @@ export const MacSidebar: React.FC<MacSidebarProps> = ({
 
     </div>
   );
-};
+});

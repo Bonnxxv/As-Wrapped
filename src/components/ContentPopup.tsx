@@ -140,8 +140,6 @@ export const ContentPopup: React.FC<ContentPopupProps> = ({
   const totalDays = getDaysInMonth(year, monthIndex);
   const dateOptions = Array.from({ length: totalDays }, (_, i) => ({ value: i + 1, label: `Day ${i + 1}` }));
 
-  const isVisible = phase === 'visible';
-
   /* ── Handlers ───────────────────── */
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -158,36 +156,25 @@ export const ContentPopup: React.FC<ContentPopupProps> = ({
   /* ── CSS classes for animation ──── */
   // Backdrop
   const backdropCls = [
-    'fixed inset-0 z-50 flex items-center justify-center p-4',
-    'transition-[background-color,backdrop-filter]',
-    isVisible
-      ? 'bg-black/40 backdrop-blur-[3px]'
-      : 'bg-black/0 backdrop-blur-none pointer-events-none',
+    'fixed inset-0 z-50 flex items-center justify-center p-4 mac-backdrop',
+    phase === 'visible' ? 'md-backdrop-enter' : 'md-backdrop-exit'
   ].join(' ');
 
-  // Panel (enter: standard-decelerate, exit: standard-accelerate)
-  const panelStyle: React.CSSProperties = {
-    transitionProperty: 'opacity, transform',
-    transitionDuration: isVisible ? '300ms' : '180ms',
-    transitionTimingFunction: isVisible
-      ? 'cubic-bezier(0.2, 0, 0, 1)'        // M3 standard / decelerate
-      : 'cubic-bezier(0.3, 0, 1, 1)',        // M3 standard / accelerate
-    opacity: isVisible ? 1 : 0,
-    transform: isVisible ? 'scale(1) translateY(0)' : 'scale(0.95) translateY(12px)',
-    willChange: 'transform, opacity',
-  };
+  // Panel
+  const panelCls = [
+    'bg-[color:var(--md-sys-color-surface)]',
+    'border border-[color:var(--md-sys-color-outline-variant)]',
+    'shadow-[var(--md-elevation-3)]',
+    'w-full max-w-2xl rounded-3xl overflow-hidden',
+    'max-h-[90vh] flex flex-col',
+    phase === 'visible' ? 'md-dialog-enter' : 'md-dialog-exit'
+  ].join(' ');
 
   return (
-    <div className={backdropCls} style={{ transitionDuration: isVisible ? '300ms' : '200ms', transitionProperty: 'background-color, backdrop-filter', transitionTimingFunction: 'cubic-bezier(0.2, 0, 0, 1)' }}>
+    <div className={backdropCls}>
       <div
-        className="
-          bg-[color:var(--md-sys-color-surface)]
-          border border-[color:var(--md-sys-color-outline-variant)]
-          shadow-[var(--md-elevation-3)]
-          w-full max-w-2xl rounded-3xl overflow-hidden
-          max-h-[90vh] flex flex-col
-        "
-        style={panelStyle}
+        className={panelCls}
+        style={{ willChange: 'transform, opacity' }}
         onClick={e => e.stopPropagation()}
       >
         {/* ─── Header ───────────────────── */}

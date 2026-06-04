@@ -161,7 +161,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     return n.toLocaleString('id-ID');
   };
 
-  const getMetrics = (item: ContentEntry) => {
+  const getMetrics = React.useCallback((item: ContentEntry) => {
     if (activeView === 'instagram') return item.instagram;
     if (activeView === 'tiktok') return item.tiktok;
     return {
@@ -171,70 +171,137 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       saves: item.instagram.saves + item.tiktok.saves,
       shares: item.instagram.shares + item.tiktok.shares,
     };
-  };
+  }, [activeView]);
 
   // 1. YEAR CALCULATIONS
-  const getYearContents = (year: number): ContentEntry[] => {
-    const list: ContentEntry[] = [];
-    for (let m = 0; m < 12; m++) {
-      const monthContents = folders[year]?.[m] || [];
-      monthContents.forEach(item => {
-        list.push(item);
-      });
-    }
-    return list;
-  };
+  const yearStats = React.useMemo(() => {
+    const getYearContents = (year: number): ContentEntry[] => {
+      const list: ContentEntry[] = [];
+      for (let m = 0; m < 12; m++) {
+        const monthContents = folders[year]?.[m] || [];
+        monthContents.forEach(item => {
+          list.push(item);
+        });
+      }
+      return list;
+    };
 
-  const yearContents = getYearContents(selectedYear);
-  const yearTotalViews = yearContents.reduce((sum, item) => sum + getMetrics(item).views, 0);
-  const yearTotalLikes = yearContents.reduce((sum, item) => sum + getMetrics(item).likes, 0);
-  const yearTotalComments = yearContents.reduce((sum, item) => sum + getMetrics(item).comments, 0);
-  const yearTotalUploads = yearContents.length;
-  const yearFypCount = yearContents.filter(item => getMetrics(item).views > 20000).length;
+    const yearContents = getYearContents(selectedYear);
+    const yearTotalViews = yearContents.reduce((sum, item) => sum + getMetrics(item).views, 0);
+    const yearTotalLikes = yearContents.reduce((sum, item) => sum + getMetrics(item).likes, 0);
+    const yearTotalComments = yearContents.reduce((sum, item) => sum + getMetrics(item).comments, 0);
+    const yearTotalUploads = yearContents.length;
+    const yearFypCount = yearContents.filter(item => getMetrics(item).views > 20000).length;
 
-  // IG vs TT breakdown for selectedYear
-  const yearIgViews = yearContents.reduce((sum, item) => sum + item.instagram.views, 0);
-  const yearTtViews = yearContents.reduce((sum, item) => sum + item.tiktok.views, 0);
-  const yearTotalViewsCalculated = yearIgViews + yearTtViews;
-  const yearIgPct = yearTotalViewsCalculated > 0 ? Math.round((yearIgViews / yearTotalViewsCalculated) * 100) : 0;
-  const yearTtPct = yearTotalViewsCalculated > 0 ? (100 - yearIgPct) : 0;
+    // IG vs TT breakdown for selectedYear
+    const yearIgViews = yearContents.reduce((sum, item) => sum + item.instagram.views, 0);
+    const yearTtViews = yearContents.reduce((sum, item) => sum + item.tiktok.views, 0);
+    const yearTotalViewsCalculated = yearIgViews + yearTtViews;
+    const yearIgPct = yearTotalViewsCalculated > 0 ? Math.round((yearIgViews / yearTotalViewsCalculated) * 100) : 0;
+    const yearTtPct = yearTotalViewsCalculated > 0 ? (100 - yearIgPct) : 0;
 
-  const prevYearContents = getYearContents(selectedYear - 1);
-  const prevYearTotalViews = prevYearContents.reduce((sum, item) => sum + getMetrics(item).views, 0);
-  const prevYearTotalLikes = prevYearContents.reduce((sum, item) => sum + getMetrics(item).likes, 0);
+    const prevYearContents = getYearContents(selectedYear - 1);
+    const prevYearTotalViews = prevYearContents.reduce((sum, item) => sum + getMetrics(item).views, 0);
+    const prevYearTotalLikes = prevYearContents.reduce((sum, item) => sum + getMetrics(item).likes, 0);
 
-  const yearViewsGrowth = prevYearTotalViews > 0 ? ((yearTotalViews - prevYearTotalViews) / prevYearTotalViews) * 100 : 0;
-  const yearLikesGrowth = prevYearTotalLikes > 0 ? ((yearTotalLikes - prevYearTotalLikes) / prevYearTotalLikes) * 100 : 0;
+    const yearViewsGrowth = prevYearTotalViews > 0 ? ((yearTotalViews - prevYearTotalViews) / prevYearTotalViews) * 100 : 0;
+    const yearLikesGrowth = prevYearTotalLikes > 0 ? ((yearTotalLikes - prevYearTotalLikes) / prevYearTotalLikes) * 100 : 0;
+
+    return {
+      yearContents,
+      yearTotalViews,
+      yearTotalLikes,
+      yearTotalComments,
+      yearTotalUploads,
+      yearFypCount,
+      yearIgViews,
+      yearTtViews,
+      yearTotalViewsCalculated,
+      yearIgPct,
+      yearTtPct,
+      yearViewsGrowth,
+      yearLikesGrowth,
+    };
+  }, [folders, selectedYear, activeView, getMetrics]);
+
+  const {
+    yearContents,
+    yearTotalViews,
+    yearTotalLikes,
+    yearTotalComments,
+    yearTotalUploads,
+    yearFypCount,
+    yearIgViews,
+    yearTtViews,
+    yearIgPct,
+    yearTtPct,
+    yearViewsGrowth,
+    yearLikesGrowth,
+  } = yearStats;
 
   // QUARTER CALCULATIONS
-  const QUARTER_MONTHS: Record<1 | 2 | 3 | 4, number[]> = {
-    1: [0, 1, 2],   // Jan–Mar
-    2: [3, 4, 5],   // Apr–Jun
-    3: [6, 7, 8],   // Jul–Sep
-    4: [9, 10, 11], // Oct–Dec
-  };
-  const quarterMonths = QUARTER_MONTHS[selectedQuarter];
-  const quarterContents: ContentEntry[] = quarterMonths.flatMap(m => folders[selectedYear]?.[m] || []);
-  const prevQuarterKey = selectedQuarter === 1 ? 4 : (selectedQuarter - 1) as 1 | 2 | 3 | 4;
-  const prevQuarterYear = selectedQuarter === 1 ? selectedYear - 1 : selectedYear;
-  const prevQuarterContents: ContentEntry[] = QUARTER_MONTHS[prevQuarterKey].flatMap(m => folders[prevQuarterYear]?.[m] || []);
+  const quarterStats = React.useMemo(() => {
+    const QUARTER_MONTHS: Record<1 | 2 | 3 | 4, number[]> = {
+      1: [0, 1, 2],   // Jan–Mar
+      2: [3, 4, 5],   // Apr–Jun
+      3: [6, 7, 8],   // Jul–Sep
+      4: [9, 10, 11], // Oct–Dec
+    };
+    const quarterMonths = QUARTER_MONTHS[selectedQuarter];
+    const quarterContents: ContentEntry[] = quarterMonths.flatMap(m => folders[selectedYear]?.[m] || []);
+    const prevQuarterKey = selectedQuarter === 1 ? 4 : (selectedQuarter - 1) as 1 | 2 | 3 | 4;
+    const prevQuarterYear = selectedQuarter === 1 ? selectedYear - 1 : selectedYear;
+    const prevQuarterContents: ContentEntry[] = QUARTER_MONTHS[prevQuarterKey].flatMap(m => folders[prevQuarterYear]?.[m] || []);
 
-  const quarterTotalViews    = quarterContents.reduce((s, i) => s + getMetrics(i).views, 0);
-  const quarterTotalLikes    = quarterContents.reduce((s, i) => s + getMetrics(i).likes, 0);
-  const quarterTotalComments = quarterContents.reduce((s, i) => s + getMetrics(i).comments, 0);
-  const quarterTotalUploads  = quarterContents.length;
-  const quarterFypCount      = quarterContents.filter(i => getMetrics(i).views > 20000).length;
-  const quarterIgViews       = quarterContents.reduce((s, i) => s + i.instagram.views, 0);
-  const quarterTtViews       = quarterContents.reduce((s, i) => s + i.tiktok.views, 0);
-  const quarterTotalViewsCalc = quarterIgViews + quarterTtViews;
-  const quarterIgPct = quarterTotalViewsCalc > 0 ? Math.round((quarterIgViews / quarterTotalViewsCalc) * 100) : 0;
-  const quarterTtPct = quarterTotalViewsCalc > 0 ? (100 - quarterIgPct) : 0;
+    const quarterTotalViews    = quarterContents.reduce((s, i) => s + getMetrics(i).views, 0);
+    const quarterTotalLikes    = quarterContents.reduce((s, i) => s + getMetrics(i).likes, 0);
+    const quarterTotalComments = quarterContents.reduce((s, i) => s + getMetrics(i).comments, 0);
+    const quarterTotalUploads  = quarterContents.length;
+    const quarterFypCount      = quarterContents.filter(i => getMetrics(i).views > 20000).length;
+    const quarterIgViews       = quarterContents.reduce((s, i) => s + i.instagram.views, 0);
+    const quarterTtViews       = quarterContents.reduce((s, i) => s + i.tiktok.views, 0);
+    const quarterTotalViewsCalc = quarterIgViews + quarterTtViews;
+    const quarterIgPct = quarterTotalViewsCalc > 0 ? Math.round((quarterIgViews / quarterTotalViewsCalc) * 100) : 0;
+    const quarterTtPct = quarterTotalViewsCalc > 0 ? (100 - quarterIgPct) : 0;
 
-  const prevQTotalViews = prevQuarterContents.reduce((s, i) => s + getMetrics(i).views, 0);
-  const prevQTotalLikes = prevQuarterContents.reduce((s, i) => s + getMetrics(i).likes, 0);
-  const quarterViewsGrowth = prevQTotalViews > 0 ? ((quarterTotalViews - prevQTotalViews) / prevQTotalViews) * 100 : 0;
-  const quarterLikesGrowth = prevQTotalLikes > 0 ? ((quarterTotalLikes - prevQTotalLikes) / prevQTotalLikes) * 100 : 0;
+    const prevQTotalViews = prevQuarterContents.reduce((s, i) => s + getMetrics(i).views, 0);
+    const prevQTotalLikes = prevQuarterContents.reduce((s, i) => s + getMetrics(i).likes, 0);
+    const quarterViewsGrowth = prevQTotalViews > 0 ? ((quarterTotalViews - prevQTotalViews) / prevQTotalViews) * 100 : 0;
+    const quarterLikesGrowth = prevQTotalLikes > 0 ? ((quarterTotalLikes - prevQTotalLikes) / prevQTotalLikes) * 100 : 0;
 
+    return {
+      quarterMonths,
+      quarterContents,
+      quarterTotalViews,
+      quarterTotalLikes,
+      quarterTotalComments,
+      quarterTotalUploads,
+      quarterFypCount,
+      quarterIgViews,
+      quarterTtViews,
+      quarterTotalViewsCalc,
+      quarterIgPct,
+      quarterTtPct,
+      quarterViewsGrowth,
+      quarterLikesGrowth,
+    };
+  }, [folders, selectedYear, selectedQuarter, activeView, getMetrics]);
+
+  const {
+    quarterMonths,
+    quarterContents,
+    quarterTotalViews,
+    quarterTotalLikes,
+    quarterTotalComments,
+    quarterTotalUploads,
+    quarterFypCount,
+    quarterIgViews,
+    quarterTtViews,
+    quarterIgPct,
+    quarterTtPct,
+    quarterViewsGrowth,
+    quarterLikesGrowth,
+  } = quarterStats;
 
   let currentFollowers = 0;
   if (activeView === 'instagram') {
@@ -246,192 +313,256 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   }
 
   // 2. MOM CHART DATA
-  const momChartData = MONTH_NAMES.map((name, idx) => {
-    // Check if month idx in selectedYear is active/inputted (not in the future)
-    let isMonthActive = true;
-    if (selectedYear > currentYear) {
-      isMonthActive = false;
-    } else if (selectedYear === currentYear) {
-      const maxMonthWithData = Array.from({ length: 12 }, (_, i) => i)
-        .reverse()
-        .find(m => (folders[selectedYear]?.[m]?.length || 0) > 0) ?? -1;
-      const lastActiveMonthLimit = Math.max(currentMonth, maxMonthWithData);
-      isMonthActive = idx <= lastActiveMonthLimit;
-    } else {
-      const maxMonthWithData = Array.from({ length: 12 }, (_, i) => i)
-        .reverse()
-        .find(m => (folders[selectedYear]?.[m]?.length || 0) > 0) ?? -1;
-      isMonthActive = maxMonthWithData === -1 ? true : idx <= maxMonthWithData;
-    }
+  const momChartData = React.useMemo(() => {
+    return MONTH_NAMES.map((name, idx) => {
+      // Check if month idx in selectedYear is active/inputted (not in the future)
+      let isMonthActive = true;
+      if (selectedYear > currentYear) {
+        isMonthActive = false;
+      } else if (selectedYear === currentYear) {
+        const maxMonthWithData = Array.from({ length: 12 }, (_, i) => i)
+          .reverse()
+          .find(m => (folders[selectedYear]?.[m]?.length || 0) > 0) ?? -1;
+        const lastActiveMonthLimit = Math.max(currentMonth, maxMonthWithData);
+        isMonthActive = idx <= lastActiveMonthLimit;
+      } else {
+        const maxMonthWithData = Array.from({ length: 12 }, (_, i) => i)
+          .reverse()
+          .find(m => (folders[selectedYear]?.[m]?.length || 0) > 0) ?? -1;
+        isMonthActive = maxMonthWithData === -1 ? true : idx <= maxMonthWithData;
+      }
 
-    const mContents = folders[selectedYear]?.[idx] || [];
+      const mContents = folders[selectedYear]?.[idx] || [];
 
-    const igViews = mContents.reduce((sum, item) => sum + item.instagram.views, 0);
-    const ttViews = mContents.reduce((sum, item) => sum + item.tiktok.views, 0);
-    const mViews = activeView === 'instagram' ? igViews : activeView === 'tiktok' ? ttViews : (igViews + ttViews);
-    const mLikes = mContents.reduce((sum, item) => sum + getMetrics(item).likes, 0);
-    const mQuantity = mContents.length;
+      const igViews = mContents.reduce((sum, item) => sum + item.instagram.views, 0);
+      const ttViews = mContents.reduce((sum, item) => sum + item.tiktok.views, 0);
+      const mViews = activeView === 'instagram' ? igViews : activeView === 'tiktok' ? ttViews : (igViews + ttViews);
+      const mLikes = mContents.reduce((sum, item) => sum + getMetrics(item).likes, 0);
+      const mQuantity = mContents.length;
 
-    let prevMIdx = idx - 1;
+      let prevMIdx = idx - 1;
+      let prevMYr = selectedYear;
+      if (prevMIdx < 0) {
+        prevMIdx = 11;
+        prevMYr = selectedYear - 1;
+      }
+      const prevMContents = folders[prevMYr]?.[prevMIdx] || [];
+      const prevMViews = prevMContents.reduce((sum, item) => sum + getMetrics(item).views, 0);
+      const mViewsGrowth = prevMViews > 0 ? ((mViews - prevMViews) / prevMViews) * 100 : 0;
+
+      return {
+        index: idx,
+        name: name,
+        shortName: name.substring(0, 3),
+        views: isMonthActive ? mViews : null,
+        igViews: isMonthActive ? igViews : null,
+        ttViews: isMonthActive ? ttViews : null,
+        likes: isMonthActive ? mLikes : null,
+        quantity: isMonthActive ? mQuantity : null,
+        growth: isMonthActive ? mViewsGrowth : null
+      };
+    });
+  }, [folders, selectedYear, activeView, getMetrics, currentYear, currentMonth]);
+
+  // 3. MONTH CALCULATIONS
+  const monthStats = React.useMemo(() => {
+    const selectedMonthContents = folders[selectedYear]?.[selectedMonth] || [];
+
+    const monthTotalViews = selectedMonthContents.reduce((sum, item) => sum + getMetrics(item).views, 0);
+    const monthTotalLikes = selectedMonthContents.reduce((sum, item) => sum + getMetrics(item).likes, 0);
+    const monthTotalComments = selectedMonthContents.reduce((sum, item) => sum + getMetrics(item).comments, 0);
+    const monthTotalUploads = selectedMonthContents.length;
+    const monthFypCount = selectedMonthContents.filter(item => getMetrics(item).views > 20000).length;
+
+    // IG vs TT breakdown for selectedMonth
+    const monthIgViews = selectedMonthContents.reduce((sum, item) => sum + item.instagram.views, 0);
+    const monthTtViews = selectedMonthContents.reduce((sum, item) => sum + item.tiktok.views, 0);
+    const monthTotalViewsCalculated = monthIgViews + monthTtViews;
+    const monthIgPct = monthTotalViewsCalculated > 0 ? Math.round((monthIgViews / monthTotalViewsCalculated) * 100) : 0;
+    const monthTtPct = monthTotalViewsCalculated > 0 ? (100 - monthIgPct) : 0;
+
+    let prevMIdx = selectedMonth - 1;
     let prevMYr = selectedYear;
     if (prevMIdx < 0) {
       prevMIdx = 11;
       prevMYr = selectedYear - 1;
     }
-    const prevMContents = folders[prevMYr]?.[prevMIdx] || [];
-    const prevMViews = prevMContents.reduce((sum, item) => sum + getMetrics(item).views, 0);
-    const mViewsGrowth = prevMViews > 0 ? ((mViews - prevMViews) / prevMViews) * 100 : 0;
+    const prevMonthContents = folders[prevMYr]?.[prevMIdx] || [];
+    const prevMonthTotalViews = prevMonthContents.reduce((sum, item) => sum + getMetrics(item).views, 0);
+    const prevMonthTotalLikes = prevMonthContents.reduce((sum, item) => sum + getMetrics(item).likes, 0);
+
+    const monthViewsGrowth = prevMonthTotalViews > 0 ? ((monthTotalViews - prevMonthTotalViews) / prevMonthTotalViews) * 100 : 0;
+    const monthLikesGrowth = prevMonthTotalLikes > 0 ? ((monthTotalLikes - prevMonthTotalLikes) / prevMonthTotalLikes) * 100 : 0;
+
+    const sortedContents = [...selectedMonthContents].sort((a, b) => getMetrics(b).views - getMetrics(a).views);
+    const bestContents = activeView === 'dashboard' ? sortedContents.slice(0, 5) : sortedContents.slice(0, 4);
 
     return {
-      index: idx,
-      name: name,
-      shortName: name.substring(0, 3),
-      views: isMonthActive ? mViews : null,
-      igViews: isMonthActive ? igViews : null,
-      ttViews: isMonthActive ? ttViews : null,
-      likes: isMonthActive ? mLikes : null,
-      quantity: isMonthActive ? mQuantity : null,
-      growth: isMonthActive ? mViewsGrowth : null
+      selectedMonthContents,
+      monthTotalViews,
+      monthTotalLikes,
+      monthTotalComments,
+      monthTotalUploads,
+      monthFypCount,
+      monthIgViews,
+      monthTtViews,
+      monthTotalViewsCalculated,
+      monthIgPct,
+      monthTtPct,
+      monthViewsGrowth,
+      monthLikesGrowth,
+      bestContents
     };
-  });
+  }, [folders, selectedYear, selectedMonth, activeView, getMetrics]);
 
-  // 3. MONTH CALCULATIONS
-  const selectedMonthContents = folders[selectedYear]?.[selectedMonth] || [];
-
-  const monthTotalViews = selectedMonthContents.reduce((sum, item) => sum + getMetrics(item).views, 0);
-  const monthTotalLikes = selectedMonthContents.reduce((sum, item) => sum + getMetrics(item).likes, 0);
-  const monthTotalComments = selectedMonthContents.reduce((sum, item) => sum + getMetrics(item).comments, 0);
-  const monthTotalUploads = selectedMonthContents.length;
-  const monthFypCount = selectedMonthContents.filter(item => getMetrics(item).views > 20000).length;
-
-  // IG vs TT breakdown for selectedMonth
-  const monthIgViews = selectedMonthContents.reduce((sum, item) => sum + item.instagram.views, 0);
-  const monthTtViews = selectedMonthContents.reduce((sum, item) => sum + item.tiktok.views, 0);
-  const monthTotalViewsCalculated = monthIgViews + monthTtViews;
-  const monthIgPct = monthTotalViewsCalculated > 0 ? Math.round((monthIgViews / monthTotalViewsCalculated) * 100) : 0;
-  const monthTtPct = monthTotalViewsCalculated > 0 ? (100 - monthIgPct) : 0;
-
-  let prevMIdx = selectedMonth - 1;
-  let prevMYr = selectedYear;
-  if (prevMIdx < 0) {
-    prevMIdx = 11;
-    prevMYr = selectedYear - 1;
-  }
-  const prevMonthContents = folders[prevMYr]?.[prevMIdx] || [];
-  const prevMonthTotalViews = prevMonthContents.reduce((sum, item) => sum + getMetrics(item).views, 0);
-  const prevMonthTotalLikes = prevMonthContents.reduce((sum, item) => sum + getMetrics(item).likes, 0);
-
-  const monthViewsGrowth = prevMonthTotalViews > 0 ? ((monthTotalViews - prevMonthTotalViews) / prevMonthTotalViews) * 100 : 0;
-  const monthLikesGrowth = prevMonthTotalLikes > 0 ? ((monthTotalLikes - prevMonthTotalLikes) / prevMonthTotalLikes) * 100 : 0;
-
-  const sortedContents = [...selectedMonthContents].sort((a, b) => getMetrics(b).views - getMetrics(a).views);
-  const bestContents = activeView === 'dashboard' ? sortedContents.slice(0, 5) : sortedContents.slice(0, 4);
+  const {
+    selectedMonthContents,
+    monthTotalViews,
+    monthTotalLikes,
+    monthTotalComments,
+    monthTotalUploads,
+    monthFypCount,
+    monthIgViews,
+    monthTtViews,
+    monthIgPct,
+    monthTtPct,
+    monthViewsGrowth,
+    monthLikesGrowth,
+    bestContents
+  } = monthStats;
 
   // 4. DAILY CHART DATA (For activeView !== 'dashboard')
-  const daysInMonth = getDaysInMonth(selectedYear, selectedMonth);
+  const dailyChartDataCalculated = React.useMemo(() => {
+    const daysInMonth = getDaysInMonth(selectedYear, selectedMonth);
 
-  let lastActiveDayLimit = daysInMonth;
-  if (selectedYear > currentYear || (selectedYear === currentYear && selectedMonth > currentMonth)) {
-    lastActiveDayLimit = 0; // Future month
-  } else if (selectedYear === currentYear && selectedMonth === currentMonth) {
-    const maxDayWithData = selectedMonthContents.reduce((max, item) => Math.max(max, item.day), 0);
-    lastActiveDayLimit = Math.max(currentDay, maxDayWithData);
-  }
-
-  const dailyChartData = Array.from({ length: daysInMonth }, (_, i) => {
-    const day = i + 1;
-    const isDayActive = day <= lastActiveDayLimit;
-    const dContents = selectedMonthContents.filter(item => item.day === day);
-    const dViews = dContents.reduce((sum, item) => sum + getMetrics(item).views, 0);
-    return {
-      day,
-      label: `${day}`,
-      views: isDayActive ? dViews : null
-    };
-  });
-
-  // 5. CYCLE CHART DATA (Weekly cycle: Senin to Minggu for the selected calendar week in the selected month)
-  const getWeeksInMonth = (year: number, monthIndex: number) => {
-    const daysInMonth = getDaysInMonth(year, monthIndex);
-    const weeks: { weekIndex: number; label: string; startDay: number; endDay: number }[] = [];
-    
-    let currentWeekStart = 1;
-    let currentWeekIndex = 1;
-    
-    for (let day = 1; day <= daysInMonth; day++) {
-      const date = new Date(year, monthIndex, day);
-      const dayOfWeek = date.getDay(); // 0 = Sunday, 1 = Monday, ...
-      
-      if (dayOfWeek === 0 || day === daysInMonth) {
-        const label = `Minggu ${currentWeekIndex} (${currentWeekStart} - ${day} ${MONTH_NAMES[monthIndex].substring(0, 3)})`;
-        weeks.push({
-          weekIndex: currentWeekIndex - 1,
-          label,
-          startDay: currentWeekStart,
-          endDay: day
-        });
-        currentWeekStart = day + 1;
-        currentWeekIndex++;
-      }
+    let lastActiveDayLimit = daysInMonth;
+    if (selectedYear > currentYear || (selectedYear === currentYear && selectedMonth > currentMonth)) {
+      lastActiveDayLimit = 0; // Future month
+    } else if (selectedYear === currentYear && selectedMonth === currentMonth) {
+      const maxDayWithData = selectedMonthContents.reduce((max, item) => Math.max(max, item.day), 0);
+      lastActiveDayLimit = Math.max(currentDay, maxDayWithData);
     }
-    return weeks;
-  };
 
-  const weeksInActiveMonth = getWeeksInMonth(selectedYear, selectedMonth);
-  const safeWeekIndex = selectedCycleWeek < weeksInActiveMonth.length ? selectedCycleWeek : 0;
-  const activeWeekRange = weeksInActiveMonth[safeWeekIndex];
-  const weekOptions = weeksInActiveMonth.map(w => ({ value: w.weekIndex, label: w.label }));
-
-  const cycleDays = [
-    { key: 1, name: 'Senin', shortName: 'Sen' },
-    { key: 2, name: 'Selasa', shortName: 'Sel' },
-    { key: 3, name: 'Rabu', shortName: 'Rab' },
-    { key: 4, name: 'Kamis', shortName: 'Kam' },
-    { key: 5, name: 'Jumat', shortName: 'Jum' },
-    { key: 6, name: 'Sabtu', shortName: 'Sab' },
-    { key: 0, name: 'Minggu', shortName: 'Min' }
-  ];
-
-  const cycleChartData = cycleDays.map(d => {
-    const dContents = selectedMonthContents.filter(item => {
-      const date = new Date(selectedYear, selectedMonth, item.day);
-      const isCorrectDayOfWeek = date.getDay() === d.key;
-      const isInWeekRange = activeWeekRange 
-        ? (item.day >= activeWeekRange.startDay && item.day <= activeWeekRange.endDay)
-        : false;
-      return isCorrectDayOfWeek && isInWeekRange;
+    const dailyChartData = Array.from({ length: daysInMonth }, (_, i) => {
+      const day = i + 1;
+      const isDayActive = day <= lastActiveDayLimit;
+      const dContents = selectedMonthContents.filter(item => item.day === day);
+      const dViews = dContents.reduce((sum, item) => sum + getMetrics(item).views, 0);
+      return {
+        day,
+        label: `${day}`,
+        views: isDayActive ? dViews : null
+      };
     });
 
-    const dViews = dContents.reduce((sum, item) => sum + getMetrics(item).views, 0);
+    return {
+      daysInMonth,
+      lastActiveDayLimit,
+      dailyChartData
+    };
+  }, [selectedYear, selectedMonth, selectedMonthContents, getMetrics, currentYear, currentMonth, currentDay]);
 
-    // Determine if this day of week has actually passed or has data in this week range
-    let isDayActive = false;
-    if (activeWeekRange) {
-      const dayInWeek = Array.from(
-        { length: activeWeekRange.endDay - activeWeekRange.startDay + 1 },
-        (_, i) => activeWeekRange.startDay + i
-      ).find(dayNum => {
-        const date = new Date(selectedYear, selectedMonth, dayNum);
-        return date.getDay() === d.key;
-      });
+  const { lastActiveDayLimit, dailyChartData } = dailyChartDataCalculated;
 
-      if (dayInWeek !== undefined) {
-        if (selectedYear > currentYear || (selectedYear === currentYear && selectedMonth > currentMonth)) {
-          isDayActive = false;
-        } else if (selectedYear === currentYear && selectedMonth === currentMonth) {
-          isDayActive = dayInWeek <= lastActiveDayLimit;
-        } else {
-          isDayActive = true;
+  // 5. CYCLE CHART DATA (Weekly cycle: Senin to Minggu for the selected calendar week in the selected month)
+  const cycleChartDataCalculated = React.useMemo(() => {
+    const getWeeksInMonth = (year: number, monthIndex: number) => {
+      const daysInMonth = getDaysInMonth(year, monthIndex);
+      const weeks: { weekIndex: number; label: string; startDay: number; endDay: number }[] = [];
+      
+      let currentWeekStart = 1;
+      let currentWeekIndex = 1;
+      
+      for (let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(year, monthIndex, day);
+        const dayOfWeek = date.getDay(); // 0 = Sunday, 1 = Monday, ...
+        
+        if (dayOfWeek === 0 || day === daysInMonth) {
+          const label = `Minggu ${currentWeekIndex} (${currentWeekStart} - ${day} ${MONTH_NAMES[monthIndex].substring(0, 3)})`;
+          weeks.push({
+            weekIndex: currentWeekIndex - 1,
+            label,
+            startDay: currentWeekStart,
+            endDay: day
+          });
+          currentWeekStart = day + 1;
+          currentWeekIndex++;
         }
       }
-    }
+      return weeks;
+    };
+
+    const weeksInActiveMonth = getWeeksInMonth(selectedYear, selectedMonth);
+    const safeWeekIndex = selectedCycleWeek < weeksInActiveMonth.length ? selectedCycleWeek : 0;
+    const activeWeekRange = weeksInActiveMonth[safeWeekIndex];
+    const weekOptions = weeksInActiveMonth.map(w => ({ value: w.weekIndex, label: w.label }));
+
+    const cycleDays = [
+      { key: 1, name: 'Senin', shortName: 'Sen' },
+      { key: 2, name: 'Selasa', shortName: 'Sel' },
+      { key: 3, name: 'Rabu', shortName: 'Rab' },
+      { key: 4, name: 'Kamis', shortName: 'Kam' },
+      { key: 5, name: 'Jumat', shortName: 'Jum' },
+      { key: 6, name: 'Sabtu', shortName: 'Sab' },
+      { key: 0, name: 'Minggu', shortName: 'Min' }
+    ];
+
+    const cycleChartData = cycleDays.map(d => {
+      const dContents = selectedMonthContents.filter(item => {
+        const date = new Date(selectedYear, selectedMonth, item.day);
+        const isCorrectDayOfWeek = date.getDay() === d.key;
+        const isInWeekRange = activeWeekRange 
+          ? (item.day >= activeWeekRange.startDay && item.day <= activeWeekRange.endDay)
+          : false;
+        return isCorrectDayOfWeek && isInWeekRange;
+      });
+
+      const dViews = dContents.reduce((sum, item) => sum + getMetrics(item).views, 0);
+
+      // Determine if this day of week has actually passed or has data in this week range
+      let isDayActive = false;
+      if (activeWeekRange) {
+        const dayInWeek = Array.from(
+          { length: activeWeekRange.endDay - activeWeekRange.startDay + 1 },
+          (_, i) => activeWeekRange.startDay + i
+        ).find(dayNum => {
+          const date = new Date(selectedYear, selectedMonth, dayNum);
+          return date.getDay() === d.key;
+        });
+
+        if (dayInWeek !== undefined) {
+          if (selectedYear > currentYear || (selectedYear === currentYear && selectedMonth > currentMonth)) {
+            isDayActive = false;
+          } else if (selectedYear === currentYear && selectedMonth === currentMonth) {
+            isDayActive = dayInWeek <= lastActiveDayLimit;
+          } else {
+            isDayActive = true;
+          }
+        }
+      }
+
+      return {
+        name: d.name,
+        shortName: d.shortName,
+        views: isDayActive ? dViews : null
+      };
+    });
 
     return {
-      name: d.name,
-      shortName: d.shortName,
-      views: isDayActive ? dViews : null
+      weeksInActiveMonth,
+      safeWeekIndex,
+      activeWeekRange,
+      weekOptions,
+      cycleChartData
     };
-  });
+  }, [selectedYear, selectedMonth, selectedMonthContents, selectedCycleWeek, getMetrics, currentYear, currentMonth, lastActiveDayLimit]);
+
+  const {
+    safeWeekIndex,
+    activeWeekRange,
+    weekOptions,
+    cycleChartData
+  } = cycleChartDataCalculated;
 
 
 
@@ -1762,7 +1893,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       // Gather matching contents
       let fypContents: ContentEntry[] = [];
       if (isYear) {
-        fypContents = getYearContents(selectedYear).filter(item => getMetrics(item).views > 20000);
+        fypContents = yearContents.filter(item => getMetrics(item).views > 20000);
       } else if (isQuarter) {
         fypContents = quarterContents.filter(item => getMetrics(item).views > 20000);
       } else {
