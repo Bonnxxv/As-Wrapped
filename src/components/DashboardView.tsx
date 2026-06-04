@@ -407,18 +407,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       case 'instagram':
         return {
           iconBg: 'bg-[color:var(--md-sys-color-error-container)] text-[color:var(--md-sys-color-on-error-container)]',
-          hoverBorder: 'hover:border-[color:var(--md-sys-color-error)]',
+          hoverBorder: 'hover:border-[color:color-mix(in_srgb,var(--md-sys-color-error)_30%,transparent)]',
         };
       case 'tiktok':
         return {
           iconBg: 'bg-[color:var(--md-sys-color-cyan-container)] text-[color:var(--md-sys-color-on-cyan-container)]',
-          hoverBorder: 'hover:border-[color:var(--md-sys-color-cyan)]',
+          hoverBorder: 'hover:border-[color:color-mix(in_srgb,var(--md-sys-color-cyan)_30%,transparent)]',
         };
       case 'dashboard':
       default:
         return {
           iconBg: 'bg-[color:var(--md-sys-color-primary-container)] text-[color:var(--md-sys-color-on-primary-container)]',
-          hoverBorder: 'hover:border-[color:var(--md-sys-color-primary)]',
+          hoverBorder: 'hover:border-[color:color-mix(in_srgb,var(--md-sys-color-primary)_30%,transparent)]',
         };
     }
   };
@@ -1664,8 +1664,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                         <div
                           className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-lg transition-all duration-150 select-none cursor-default bg-[color:var(--md-sys-color-surface)] border shadow-[var(--md-elevation-1)] ${
                             isFirst
-                              ? 'border-[color:var(--md-sys-color-primary)]'
-                              : 'border-[color:var(--md-sys-color-outline-variant)] hover:border-[color:var(--md-sys-color-primary)]/40'
+                              ? 'border-[color:color-mix(in_srgb,var(--md-sys-color-primary)_30%,transparent)]'
+                              : 'border-[color:var(--md-sys-color-outline-variant)] hover:border-[color:color-mix(in_srgb,var(--md-sys-color-primary)_30%,transparent)]'
                           }`}
                           >
                             <div className="flex items-center gap-4 flex-1">
@@ -2011,8 +2011,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       <div 
                         className={`flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-4 rounded-xl transition-all duration-150 select-none cursor-default bg-[color:var(--md-sys-color-surface)] border shadow-[var(--md-elevation-1)] ${
                           isFirst 
-                            ? 'border-[color:var(--md-sys-color-primary)]' 
-                            : 'border-[color:var(--md-sys-color-outline-variant)] hover:border-[color:var(--md-sys-color-primary)]'
+                            ? 'border-[color:color-mix(in_srgb,var(--md-sys-color-primary)_30%,transparent)]' 
+                            : 'border-[color:var(--md-sys-color-outline-variant)] hover:border-[color:color-mix(in_srgb,var(--md-sys-color-primary)_30%,transparent)]'
                         }`}
                       >
                         <div className="flex items-center gap-4 flex-1">

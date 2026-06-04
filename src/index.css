@@ -86,8 +86,9 @@
   --md-sys-color-surface-container-high:   #e8eaed;
   --md-sys-color-surface-container-highest:#dadce0;
 
-  --md-sys-color-outline:                  #80868b;
-  --md-sys-color-outline-variant:          #dadce0;
+  --md-sys-color-outline:                  #9aa0a6;
+  --md-sys-color-outline-variant:          #e8eaed;
+  --md-sys-color-outline-subtle:           #f1f3f4;
 
   /* Google Soft Palette additions (Light) */
   --md-sys-color-cyan:                     #00acc1;
@@ -141,7 +142,8 @@
   --md-sys-color-surface-container-highest:#5f6368;
 
   --md-sys-color-outline:                  #9aa0a6;
-  --md-sys-color-outline-variant:          #5f6368;
+  --md-sys-color-outline-variant:          #3c4043;
+  --md-sys-color-outline-subtle:           #35373a;
 
   /* Google Soft Palette additions (Dark) */
   --md-sys-color-cyan:                     #80deea;
@@ -545,14 +547,14 @@ input[type=number] { -moz-appearance: textfield; }
    ══════════════════════════════════════════ */
 .md-card {
   background-color: var(--md-sys-color-surface);
-  border: 1px solid var(--md-sys-color-outline-variant);
+  border: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 65%, transparent);
   border-radius: var(--radius-lg);
   position: relative;
   overflow: hidden;
 }
 .md-card-outlined {
   background-color: var(--md-sys-color-surface);
-  border: 1px solid var(--md-sys-color-outline-variant);
+  border: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 65%, transparent);
   border-radius: var(--radius-lg);
 }
 
@@ -630,7 +632,8 @@ input[type=number] { -moz-appearance: textfield; }
    ══════════════════════════════════════════ */
 .md-divider {
   height: 1px;
-  background-color: var(--md-sys-color-outline-variant);
+  background-color: var(--md-sys-color-outline-subtle, var(--md-sys-color-outline-variant));
+  opacity: 0.7;
 }
 
 /* ══════════════════════════════════════════
@@ -639,7 +642,7 @@ input[type=number] { -moz-appearance: textfield; }
    ══════════════════════════════════════════ */
 .stat-card {
   background-color: var(--md-sys-color-surface);
-  border: 1px solid var(--md-sys-color-outline-variant);
+  border: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 70%, transparent);
   border-radius: var(--radius-lg);
   padding: 16px 20px;
   cursor: pointer;
@@ -651,7 +654,7 @@ input[type=number] { -moz-appearance: textfield; }
     box-shadow 150ms var(--md-easing-standard);
 }
 .stat-card:hover {
-  border-color: var(--md-sys-color-primary);
+  border-color: color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent);
   box-shadow: var(--md-elevation-1);
 }
 .stat-card:active {
