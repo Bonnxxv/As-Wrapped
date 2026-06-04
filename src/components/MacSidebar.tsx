@@ -454,6 +454,7 @@ export const MacSidebar: React.FC<MacSidebarProps> = ({
                 ? 'w-11 h-11 rounded-full md-icon-btn self-center'
                 : 'gai-btn-tonal w-full h-11 px-4 rounded-xl text-sm gap-2'
               }`}
+            style={isCollapsed ? undefined : { border: '1px solid var(--md-sys-color-outline)' }}
             title={isCollapsed ? "Import Backup" : "Import dari file JSON"}
           >
             <Download size={14} className="shrink-0" />

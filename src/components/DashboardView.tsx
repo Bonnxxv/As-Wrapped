@@ -58,6 +58,11 @@ const TikTokIcon = ({ size = 14, className = "" }: { size?: number; className?: 
   </svg>
 );
 
+const getPercentageColor = (pct: number) => {
+  const hue = Math.min(Math.max(pct, 0), 100) * 1.2;
+  return `hsl(${hue}, 75%, 45%)`;
+};
+
 const CalendarWidget = ({ year, monthIndex, activeMonthData }: { year: number, monthIndex: number, activeMonthData: ContentEntry[] }) => {
   const daysInMonth = getDaysInMonth(year, monthIndex);
   const firstDay = new Date(year, monthIndex, 1).getDay(); // 0 (Sun) to 6 (Sat)
@@ -511,8 +516,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <span>TT: {fmt(yearTtViews)} ({yearTtPct}%)</span>
               </div>
               <div className="h-1.5 w-full bg-[color:var(--md-sys-color-surface-variant)] rounded-full overflow-hidden flex">
-                <div style={{ width: `${yearIgPct}%` }} className="h-full bg-[#ea4335]" />
-                <div style={{ width: `${yearTtPct}%` }} className="h-full bg-[#00acc1]" />
+                <div style={{ width: `${yearIgPct}%`, backgroundColor: getPercentageColor(yearIgPct) }} className="h-full" />
+                <div style={{ width: `${yearTtPct}%`, backgroundColor: getPercentageColor(yearTtPct) }} className="h-full" />
               </div>
             </div>
           </div>
@@ -680,7 +685,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   const renderQuarterSummaryCards = (isDashboard: boolean) => {
     const { iconBg, hoverBorder } = getThemeClasses();
-    const qLabel = `Q${selectedQuarter} ${selectedYear}`;
 
     if (isDashboard) {
       return (
@@ -708,8 +712,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <span>TT: {fmt(quarterTtViews)} ({quarterTtPct}%)</span>
               </div>
               <div className="h-1.5 w-full bg-[color:var(--md-sys-color-surface-variant)] rounded-full overflow-hidden flex">
-                <div style={{ width: `${quarterIgPct}%` }} className="h-full bg-[#ea4335]" />
-                <div style={{ width: `${quarterTtPct}%` }} className="h-full bg-[#00acc1]" />
+                <div style={{ width: `${quarterIgPct}%`, backgroundColor: getPercentageColor(quarterIgPct) }} className="h-full" />
+                <div style={{ width: `${quarterTtPct}%`, backgroundColor: getPercentageColor(quarterTtPct) }} className="h-full" />
               </div>
             </div>
           </div>
@@ -872,8 +876,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <span className="text-[#00acc1]">TT: {fmt(monthTtViews)} ({monthTtPct}%)</span>
               </div>
               <div className="h-1.5 w-full bg-[color:var(--md-sys-color-surface-variant)] rounded-full overflow-hidden flex">
-                <div style={{ width: `${monthIgPct}%` }} className="h-full bg-[#ea4335]" />
-                <div style={{ width: `${monthTtPct}%` }} className="h-full bg-[#00acc1]" />
+                <div style={{ width: `${monthIgPct}%`, backgroundColor: getPercentageColor(monthIgPct) }} className="h-full" />
+                <div style={{ width: `${monthTtPct}%`, backgroundColor: getPercentageColor(monthTtPct) }} className="h-full" />
               </div>
             </div>
           </div>
@@ -1257,16 +1261,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                           {activeView === 'dashboard' ? (
                             row.total > 0 ? (
                               <>
-                                <div className="h-full bg-red-500" style={{ width: `${igPercent}%` }} />
-                                <div className="h-full bg-[#00acc1]" style={{ width: `${ttPercent}%` }} />
+                                <div style={{ width: `${igPercent}%`, backgroundColor: getPercentageColor(igPercent) }} className="h-full" />
+                                <div style={{ width: `${ttPercent}%`, backgroundColor: getPercentageColor(ttPercent) }} className="h-full" />
                               </>
                             ) : (
                               <div className="h-full bg-[color:var(--md-sys-color-surface-container-highest)] w-full" />
                             )
                           ) : (
                             <div 
-                              className={`h-full ${activeView === 'instagram' ? 'bg-red-500' : 'bg-[#00acc1]'}`} 
-                              style={{ width: `${percent}%` }} 
+                              style={{ width: `${percent}%`, backgroundColor: getPercentageColor(percent) }} 
+                              className="h-full"
                             />
                           )}
                         </div>
@@ -1321,7 +1325,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       <div className="flex flex-col items-end shrink-0 pl-4">
                         <span className="font-bold text-sm text-[color:var(--md-sys-color-on-surface)] font-mono">{fmtFull(row.total)}</span>
                         <div className="w-24 h-1.5 bg-[color:var(--md-sys-color-surface-container-highest)] rounded-full overflow-hidden mt-1.5 flex">
-                          {activeView === 'dashboard' ? (row.total > 0 ? (<><div className="h-full bg-red-500" style={{ width: `${igPercent}%` }} /><div className="h-full bg-[#00acc1]" style={{ width: `${ttPercent}%` }} /></>) : (<div className="h-full bg-[color:var(--md-sys-color-surface-container-highest)] w-full" />)) : (<div className={`h-full ${activeView === 'instagram' ? 'bg-red-500' : 'bg-[#00acc1]'}`} style={{ width: `${percent}%` }} />)}
+                          {activeView === 'dashboard' ? (
+                            row.total > 0 ? (
+                              <>
+                                <div style={{ width: `${igPercent}%`, backgroundColor: getPercentageColor(igPercent) }} className="h-full" />
+                                <div style={{ width: `${ttPercent}%`, backgroundColor: getPercentageColor(ttPercent) }} className="h-full" />
+                              </>
+                            ) : (
+                              <div className="h-full bg-[color:var(--md-sys-color-surface-container-highest)] w-full" />
+                            )
+                          ) : (
+                            <div 
+                              style={{ width: `${percent}%`, backgroundColor: getPercentageColor(percent) }} 
+                              className="h-full"
+                            />
+                          )}
                         </div>
                       </div>
                     </div>
@@ -1390,16 +1408,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                             {activeView === 'dashboard' ? (
                               totalViews > 0 ? (
                                 <>
-                                  <div className="h-full bg-red-500" style={{ width: `${igPercent}%` }} />
-                                  <div className="h-full bg-[#00acc1]" style={{ width: `${ttPercent}%` }} />
+                                  <div style={{ width: `${igPercent}%`, backgroundColor: getPercentageColor(igPercent) }} className="h-full" />
+                                  <div style={{ width: `${ttPercent}%`, backgroundColor: getPercentageColor(ttPercent) }} className="h-full" />
                                 </>
                               ) : (
                                 <div className="h-full bg-[color:var(--md-sys-color-surface-container-highest)] w-full" />
                               )
                             ) : (
                               <div 
-                                className={`h-full ${activeView === 'instagram' ? 'bg-red-500' : 'bg-[#00acc1]'}`} 
-                                style={{ width: `${percent}%` }} 
+                                style={{ width: `${percent}%`, backgroundColor: getPercentageColor(percent) }} 
+                                className="h-full"
                               />
                             )}
                           </div>
@@ -1830,16 +1848,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                           {activeView === 'dashboard' ? (
                             m.views > 0 ? (
                               <>
-                                <div className="h-full bg-red-500" style={{ width: `${igPercent}%` }} />
-                                <div className="h-full bg-[#00acc1]" style={{ width: `${ttPercent}%` }} />
+                                <div style={{ width: `${igPercent}%`, backgroundColor: getPercentageColor(igPercent) }} className="h-full" />
+                                <div style={{ width: `${ttPercent}%`, backgroundColor: getPercentageColor(ttPercent) }} className="h-full" />
                               </>
                             ) : (
                               <div className="h-full bg-[color:var(--md-sys-color-surface-container-highest)] w-full" />
                             )
                           ) : (
                             <div 
-                              className="h-full bg-amber-500" 
-                              style={{ width: `${percent}%` }} 
+                              style={{ width: `${percent}%`, backgroundColor: getPercentageColor(percent) }} 
+                              className="h-full"
                             />
                           )}
                         </div>
@@ -2073,8 +2091,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                                 {/* Leaderboard Views Ratio Progress Bar */}
                                 <div className="flex flex-col gap-1.5 mt-2.5 max-w-xs">
                                   <div className="h-1.5 w-full bg-[color:var(--md-sys-color-surface-variant)] rounded-full overflow-hidden flex">
-                                    <div style={{ width: `${igPct}%` }} className="h-full bg-[#ea4335]" />
-                                    <div style={{ width: `${ttPct}%` }} className="h-full bg-[#00acc1]" />
+                                    <div style={{ width: `${igPct}%`, backgroundColor: getPercentageColor(igPct) }} className="h-full" />
+                                    <div style={{ width: `${ttPct}%`, backgroundColor: getPercentageColor(ttPct) }} className="h-full" />
                                   </div>
                                   <div className="flex justify-between text-[12px] font-bold uppercase tracking-wider text-[color:var(--md-sys-color-on-surface-variant)]">
                                     <span>IG: {fmt(igViews)} ({igPct}%)</span>
