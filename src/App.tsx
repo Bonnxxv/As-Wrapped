@@ -169,7 +169,7 @@ function App() {
   const isDarkMode = theme === 'dark';
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-mac-canvas text-mac-text font-sans mac-transition">
+    <div className="flex h-screen w-screen overflow-hidden bg-[color:var(--md-sys-color-background)] text-[color:var(--md-sys-color-on-surface)] font-sans">
       
       {/* Left macOS Panel Sidebar */}
       <MacSidebar
@@ -225,33 +225,43 @@ function App() {
         initialEntry={editingEntry}
       />
 
-      {/* 4. Custom macOS Tahoe Deletion Warning Dialog (Content) */}
+      {/* 4. M3 Deletion Warning Dialog (Content) */}
       {contentToDeleteId && (() => {
         const item = folders[selectedYear]?.[selectedMonth]?.find(c => c.id === contentToDeleteId);
         return (
-          <div className="fixed inset-0 z-50 mac-backdrop flex items-center justify-center p-4 animate-in fade-in duration-200">
-            <div className="bg-mac-panel p-5 max-w-[280px] w-full flex flex-col items-center text-center mac-spring-popup border border-mac-border shadow-2xl rounded-2xl select-none">
-              <div className="w-10 h-10 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mb-3 shrink-0">
-                <AlertTriangle size={20} />
+          <div className="fixed inset-0 z-50 mac-backdrop flex items-center justify-center p-4 md-backdrop-enter">
+            <div className="
+              bg-[color:var(--md-sys-color-surface)]
+              border border-[color:var(--md-sys-color-outline-variant)]
+              shadow-[var(--md-elevation-3)]
+              rounded-3xl p-6 max-w-[360px] w-full
+              flex flex-col gap-5 select-none
+              md-dialog-enter
+            ">
+              {/* Icon + Title */}
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-full bg-[color:var(--md-sys-color-error-container)] text-[color:var(--md-sys-color-on-error-container)] flex items-center justify-center shrink-0">
+                  <AlertTriangle size={20} />
+                </div>
+                <div>
+                  <h3 className="md-title-medium text-[color:var(--md-sys-color-on-surface)]">Delete Content?</h3>
+                  <p className="md-body-medium text-[color:var(--md-sys-color-on-surface-variant)] mt-1">
+                    Delete <span className="font-semibold text-[color:var(--md-sys-color-on-surface)]">&ldquo;{item?.title}&rdquo;</span> from {MONTH_NAMES[selectedMonth]} {selectedYear}? This cannot be undone.
+                  </p>
+                </div>
               </div>
-              <h3 className="text-sm font-bold text-mac-text mb-2">Delete Content?</h3>
-              <p className="text-xs text-mac-muted mb-5 leading-relaxed">
-                Are you sure you want to delete <span className="font-semibold text-mac-text">"{item?.title}"</span> from {MONTH_NAMES[selectedMonth]} {selectedYear}? This cannot be undone.
-              </p>
-              <div className="flex flex-col gap-2 w-full text-xs">
-                <button
-                  type="button"
-                  onClick={executeContentDeletion}
-                  className="w-full py-2 rounded-full bg-red-500 hover:bg-red-600 text-white font-bold mac-transition cursor-pointer"
-                >
-                  Delete
+              {/* Actions */}
+              <div className="flex gap-2 justify-end">
+                <button type="button" onClick={() => setContentToDeleteId(null)} className="gai-btn-text">
+                  Cancel
                 </button>
                 <button
                   type="button"
-                  onClick={() => setContentToDeleteId(null)}
-                  className="w-full py-2 rounded-full border border-mac-border bg-mac-canvas hover:bg-mac-surface text-mac-text font-bold mac-transition cursor-pointer"
+                  onClick={executeContentDeletion}
+                  className="gai-btn-filled"
+                  style={{ backgroundColor: 'var(--md-sys-color-error)', color: 'var(--md-sys-color-on-error)' }}
                 >
-                  Cancel
+                  Delete
                 </button>
               </div>
             </div>
@@ -259,69 +269,93 @@ function App() {
         );
       })()}
 
-      {/* 5. Custom macOS Tahoe Deletion Warning Dialog (Year) */}
+      {/* 5. M3 Deletion Warning Dialog (Year) */}
       {yearToDelete !== null && (
-        <div className="fixed inset-0 z-50 mac-backdrop flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-mac-panel p-5 max-w-[280px] w-full flex flex-col items-center text-center mac-spring-popup border border-mac-border shadow-2xl rounded-2xl select-none">
-            <div className="w-10 h-10 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mb-3 shrink-0">
-              <AlertTriangle size={20} />
+        <div className="fixed inset-0 z-50 mac-backdrop flex items-center justify-center p-4 md-backdrop-enter">
+          <div className="
+            bg-[color:var(--md-sys-color-surface)]
+            border border-[color:var(--md-sys-color-outline-variant)]
+            shadow-[var(--md-elevation-3)]
+            rounded-3xl p-6 max-w-[360px] w-full
+            flex flex-col gap-5 select-none
+            md-dialog-enter
+          ">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-full bg-[color:var(--md-sys-color-error-container)] text-[color:var(--md-sys-color-on-error-container)] flex items-center justify-center shrink-0">
+                <AlertTriangle size={20} />
+              </div>
+              <div>
+                <h3 className="md-title-medium text-[color:var(--md-sys-color-on-surface)]">Delete Folder?</h3>
+                <p className="md-body-medium text-[color:var(--md-sys-color-on-surface-variant)] mt-1">
+                  Deleting the <span className="font-semibold text-[color:var(--md-sys-color-on-surface)]">{yearToDelete}</span> folder will permanently remove all its content.
+                </p>
+              </div>
             </div>
-            <h3 className="text-sm font-bold text-mac-text mb-2">Delete Folder?</h3>
-            <p className="text-xs text-mac-muted mb-5 leading-relaxed font-sans">
-              Deleting the folder <span className="font-bold text-mac-text">{yearToDelete}</span> will remove all content inside it. This action cannot be undone.
-            </p>
-            <div className="flex flex-col gap-2 w-full text-xs">
-              <button
-                type="button"
-                onClick={executeYearDeletion}
-                className="w-full py-2 rounded-full bg-red-500 hover:bg-red-600 text-white font-bold mac-transition cursor-pointer"
-              >
-                Delete
+            <div className="flex gap-2 justify-end">
+              <button type="button" onClick={() => setYearToDelete(null)} className="gai-btn-text">
+                Cancel
               </button>
               <button
                 type="button"
-                onClick={() => setYearToDelete(null)}
-                className="w-full py-2 rounded-full border border-mac-border bg-mac-canvas hover:bg-mac-surface text-mac-text font-bold mac-transition cursor-pointer"
+                onClick={executeYearDeletion}
+                className="gai-btn-filled"
+                style={{ backgroundColor: 'var(--md-sys-color-error)', color: 'var(--md-sys-color-on-error)' }}
               >
-                Cancel
+                Delete
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* 6. Custom macOS Sequoia Notification Banner */}
+      {/* 6. M3 Snackbar Notification */}
       {notification && (
-        <div className="fixed top-4 right-4 z-[100] max-w-[320px] w-full bg-mac-panel/85 backdrop-blur-md border border-mac-border/80 shadow-2xl p-3.5 rounded-2xl flex gap-3 animate-in slide-in-from-right fade-in duration-300 pointer-events-auto select-none">
-          {/* App Icon or Type Icon */}
-          <div className="w-10 h-10 rounded-xl bg-mac-accent/15 flex items-center justify-center shrink-0">
+        <div
+          className="
+            fixed bottom-6 left-1/2 -translate-x-1/2 z-[100]
+            max-w-[480px] w-auto min-w-[280px]
+            bg-[color:var(--md-sys-color-surface-container-highest,var(--md-sys-color-surface-variant))]
+            text-[color:var(--md-sys-color-on-surface)]
+            px-4 py-3.5 rounded-2xl
+            flex items-center gap-3
+            shadow-[var(--md-elevation-3)]
+            pointer-events-auto select-none
+            md-snackbar-enter
+          "
+        >
+          {/* Status icon */}
+          <div className={`shrink-0 ${
+            notification.type === 'success' ? 'text-[color:var(--md-sys-color-primary)]' :
+            notification.type === 'error' ? 'text-[color:var(--md-sys-color-error)]' :
+            'text-[color:var(--md-sys-color-secondary,var(--md-sys-color-primary))]'
+          }`}>
             {notification.type === 'success' ? (
-              <svg className="w-5 h-5 text-mac-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
               </svg>
             ) : notification.type === 'error' ? (
-              <svg className="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M12 3a9 9 0 100 18A9 9 0 0012 3z" />
               </svg>
             ) : (
-              <svg className="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             )}
           </div>
-          
-          {/* Notification Info */}
-          <div className="flex-1 min-w-0 flex flex-col justify-center">
-            <h4 className="text-[11px] font-bold text-mac-text leading-tight truncate">{notification.title}</h4>
-            <p className="text-[10px] text-mac-muted leading-snug mt-0.5 whitespace-pre-wrap break-words">{notification.message}</p>
+
+          {/* Text */}
+          <div className="flex-1 min-w-0">
+            <p className="md-label-large text-[color:var(--md-sys-color-on-surface)] leading-tight">{notification.title}</p>
+            <p className="md-body-small text-[color:var(--md-sys-color-on-surface-variant)] mt-0.5 leading-snug">{notification.message}</p>
           </div>
 
-          {/* Close Button */}
-          <button 
+          {/* Dismiss */}
+          <button
             onClick={() => setNotification(null)}
-            className="text-mac-muted hover:text-mac-text p-0.5 self-start rounded-md hover:bg-mac-surface/50 mac-transition shrink-0 cursor-pointer"
+            className="md-icon-btn-sm shrink-0"
           >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>

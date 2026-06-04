@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Check } from 'lucide-react';
 
 interface DropdownOption {
@@ -12,6 +12,7 @@ interface MacDropdownProps {
   options: DropdownOption[];
   className?: string;
   placeholder?: string;
+  size?: 'sm' | 'md';
 }
 
 export const MacDropdown: React.FC<MacDropdownProps> = ({
@@ -19,62 +20,134 @@ export const MacDropdown: React.FC<MacDropdownProps> = ({
   onChange,
   options,
   className = '',
-  placeholder = 'Select...'
+  placeholder = 'Select…',
+  size = 'md'
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [menuPhase, setMenuPhase] = useState<'hidden' | 'visible' | 'exiting'>('hidden');
+  const menuTimerRef = useRef<any>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const openMenu = () => {
+    clearTimeout(menuTimerRef.current);
+    setIsOpen(true);
+    menuTimerRef.current = setTimeout(() => setMenuPhase('visible'), 10);
+  };
+
+  const closeMenu = () => {
+    setMenuPhase('exiting');
+    menuTimerRef.current = setTimeout(() => {
+      setIsOpen(false);
+      setMenuPhase('hidden');
+    }, 120);
+  };
+
+  const toggleMenu = () => {
+    if (isOpen) closeMenu();
+    else openMenu();
+  };
+
+  useEffect(() => () => clearTimeout(menuTimerRef.current), []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handle = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        closeMenu();
+      }
+    };
+    document.addEventListener('mousedown', handle);
+    return () => document.removeEventListener('mousedown', handle);
+  }, [isOpen]);
 
   const selectedOption = options.find(opt => opt.value === value);
   const displayLabel = selectedOption ? selectedOption.label : placeholder;
 
   const handleSelect = (val: any) => {
     onChange(val);
-    setIsOpen(false);
+    closeMenu();
+  };
+
+  /* Animation: simple fade + slight scale, standard M3 easing */
+  const menuStyle: React.CSSProperties = {
+    transitionProperty: 'opacity, transform',
+    transitionDuration: menuPhase === 'visible' ? '150ms' : '100ms',
+    transitionTimingFunction: 'cubic-bezier(0.2, 0, 0, 1)',
+    opacity: menuPhase === 'visible' ? 1 : 0,
+    transform: menuPhase === 'visible' ? 'scaleY(1)' : 'scaleY(0.95)',
+    transformOrigin: 'top center',
   };
 
   return (
-    <div className={`relative inline-block text-left select-none ${className}`}>
-      
-      {/* Trigger Button */}
+    <div ref={containerRef} className={`relative inline-block select-none ${className}`}>
+
+      {/* Trigger — adaptable height & radius */}
       <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full bg-mac-canvas hover:bg-mac-surface/40 border border-mac-border/80 rounded-md px-2.5 py-1 text-xs font-medium text-mac-text flex items-center justify-between gap-2 shadow-sm mac-transition cursor-pointer focus:outline-none focus:border-mac-accent focus:ring-1 focus:ring-mac-accent/20"
+        onClick={toggleMenu}
+        className={`
+          w-full flex items-center justify-between gap-1.5
+          bg-[color:var(--md-sys-color-surface)]
+          border border-[color:var(--md-sys-color-outline-variant)]
+          cursor-pointer outline-none
+          text-[color:var(--md-sys-color-on-surface)] font-medium
+          transition-[border-color,background-color] duration-100
+          hover:border-[color:var(--md-sys-color-outline)]
+          hover:bg-[color:var(--md-sys-color-surface-container-low)]
+          focus-visible:border-[color:var(--md-sys-color-primary)] focus-visible:border-2
+          ${size === 'sm'
+            ? 'h-7 text-xs px-2.5 rounded-[8px]'
+            : 'h-9 text-[13px] px-3.5 rounded-[12px]'
+          }
+        `}
       >
         <span className="truncate">{displayLabel}</span>
-        <ChevronDown size={11} className={`text-mac-muted mac-transition transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown
+          size={size === 'sm' ? 12 : 14}
+          className="shrink-0 text-[color:var(--md-sys-color-on-surface-variant)] transition-transform duration-150"
+          style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
+        />
       </button>
 
-      {/* Overlay */}
+      {/* Menu — 8px gap from trigger, responsive radius, compact items */}
       {isOpen && (
-        <div 
-          className="fixed inset-0 z-40 cursor-default" 
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsOpen(false);
-          }}
-        />
-      )}
-
-      {/* Popover */}
-      {isOpen && (
-        <div className="absolute right-0 top-full mt-1 z-50 min-w-[120px] bg-mac-panel border border-mac-border/80 rounded-md shadow-mac-popover p-1 overflow-y-auto max-h-56 animate-in fade-in slide-in-from-top-1 duration-100 origin-top-right select-none">
-          {options.map((option) => {
-            const isSelected = option.value === value;
-            return (
-              <div
-                key={option.value}
-                onClick={() => handleSelect(option.value)}
-                className={`w-full text-left px-2 py-1.5 rounded text-xs flex items-center justify-between gap-3 cursor-pointer mac-transition ${
-                  isSelected
-                    ? 'bg-mac-accent text-white font-medium'
-                    : 'text-mac-text hover:bg-mac-surface/60 hover:text-mac-text'
-                }`}
-              >
-                <span className="truncate">{option.label}</span>
-                {isSelected && <Check size={11} className="shrink-0 text-white" />}
-              </div>
-            );
-          })}
+        <div
+          className={`
+            absolute left-0 top-[calc(100%+8px)] z-50 min-w-full
+            bg-[color:var(--md-sys-color-surface-container)]
+            border border-[color:var(--md-sys-color-outline-variant)]
+            shadow-[var(--md-elevation-2)]
+            overflow-hidden
+            ${size === 'sm' ? 'rounded-[8px]' : 'rounded-[12px]'}
+          `}
+          style={menuStyle}
+        >
+          <div className="overflow-y-auto overflow-x-hidden max-h-52 py-1">
+            {options.map((option) => {
+              const isSelected = option.value === value;
+              return (
+                <div
+                  key={option.value}
+                  onClick={() => handleSelect(option.value)}
+                  className={`
+                    flex items-center justify-between gap-3
+                    cursor-pointer transition-colors duration-75
+                    ${size === 'sm'
+                      ? 'px-2 py-[5px] mx-0.5 rounded-[6px] text-xs'
+                      : 'px-3 py-[7px] mx-1 rounded-[8px] text-[13px]'
+                    }
+                    ${isSelected
+                      ? 'bg-[color:var(--md-sys-color-primary-container)] text-[color:var(--md-sys-color-on-primary-container)] font-semibold'
+                      : 'text-[color:var(--md-sys-color-on-surface)] hover:bg-[color:var(--md-sys-color-surface-container-high)]'
+                    }
+                  `}
+                >
+                  <span className="truncate">{option.label}</span>
+                  {isSelected && <Check size={size === 'sm' ? 12 : 14} className="shrink-0 text-[color:var(--md-sys-color-primary)]" />}
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 

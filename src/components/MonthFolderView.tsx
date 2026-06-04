@@ -37,29 +37,21 @@ export const MonthFolderView: React.FC<MonthFolderViewProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [groupBy, setGroupBy] = useState<'none' | 'instagram' | 'tiktok' | 'fyp'>('none');
 
-  const fmtFull = (n: number) => {
-    return n.toLocaleString('id-ID');
-  };
+  const fmtFull = (n: number) => n.toLocaleString('id-ID');
 
-  const filteredContents = contents.filter(item => 
+  const filteredContents = contents.filter(item =>
     item.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const getGroupedData = () => {
-    if (groupBy === 'none') {
-      return [{ title: 'All Content', items: filteredContents }];
-    }
+    if (groupBy === 'none') return [{ title: 'All Content', items: filteredContents }];
 
     if (groupBy === 'fyp') {
       const fypItems = filteredContents.filter(item => item.instagram.views > 20000 || item.tiktok.views > 20000);
       const regularItems = filteredContents.filter(item => !(item.instagram.views > 20000 || item.tiktok.views > 20000));
       const groups = [];
-      if (fypItems.length > 0) {
-        groups.push({ title: '🌟 FYP Hits (Views > 20K)', items: fypItems });
-      }
-      if (regularItems.length > 0) {
-        groups.push({ title: '📁 Regular Content', items: regularItems });
-      }
+      if (fypItems.length > 0) groups.push({ title: '🌟 FYP Hits (Views > 20K)', items: fypItems });
+      if (regularItems.length > 0) groups.push({ title: '📁 Regular Content', items: regularItems });
       return groups;
     }
 
@@ -67,12 +59,8 @@ export const MonthFolderView: React.FC<MonthFolderViewProps> = ({
       const activeItems = filteredContents.filter(item => item.instagram.views > 0);
       const inactiveItems = filteredContents.filter(item => item.instagram.views === 0);
       const groups = [];
-      if (activeItems.length > 0) {
-        groups.push({ title: '📸 Instagram Active', items: activeItems });
-      }
-      if (inactiveItems.length > 0) {
-        groups.push({ title: '💨 Instagram Inactive', items: inactiveItems });
-      }
+      if (activeItems.length > 0) groups.push({ title: '📸 Instagram Active', items: activeItems });
+      if (inactiveItems.length > 0) groups.push({ title: '💨 Instagram Inactive', items: inactiveItems });
       return groups;
     }
 
@@ -80,239 +68,310 @@ export const MonthFolderView: React.FC<MonthFolderViewProps> = ({
       const activeItems = filteredContents.filter(item => item.tiktok.views > 0);
       const inactiveItems = filteredContents.filter(item => item.tiktok.views === 0);
       const groups = [];
-      if (activeItems.length > 0) {
-        groups.push({ title: '🎵 TikTok Active', items: activeItems });
-      }
-      if (inactiveItems.length > 0) {
-        groups.push({ title: '💨 TikTok Inactive', items: inactiveItems });
-      }
+      if (activeItems.length > 0) groups.push({ title: '🎵 TikTok Active', items: activeItems });
+      if (inactiveItems.length > 0) groups.push({ title: '💨 TikTok Inactive', items: inactiveItems });
       return groups;
     }
 
     return [];
   };
 
+  const filterOptions: { key: typeof groupBy; label: string }[] = [
+    { key: 'none', label: 'All' },
+    { key: 'instagram', label: 'Instagram' },
+    { key: 'tiktok', label: 'TikTok' },
+    { key: 'fyp', label: 'FYP' },
+  ];
+
   return (
-    <div className="flex-1 flex flex-col h-screen overflow-hidden bg-mac-canvas text-mac-text">
-      
-      {/* Top Toolbar (macOS Style) */}
-      <div className="flex flex-wrap sm:flex-nowrap gap-4 items-center justify-between py-2 px-6 shrink-0 border-b border-mac-border/50">
-        <div className="flex items-center gap-2">
-          <FolderOpen className="text-mac-accent" size={16} />
-          <h1 className="text-sm font-semibold text-mac-text">
-            {MONTH_NAMES[monthIndex]} {year}
-          </h1>
-          <span className="ml-2 font-medium text-mac-muted text-xs">
-            {contents.length} items
-          </span>
+    <div className="flex-1 flex flex-col h-screen overflow-hidden bg-[color:var(--md-sys-color-background)] text-[color:var(--md-sys-color-on-surface)]">
+
+      {/* ── Top Toolbar ──────────────── */}
+      <div className="
+        flex flex-wrap sm:flex-nowrap items-center justify-between gap-4
+        px-8 py-4 shrink-0
+        border-b border-[color:var(--md-sys-color-outline-variant)]
+        bg-[color:var(--md-sys-color-surface)]
+      ">
+        {/* Left: Breadcrumb / Title */}
+        <div className="flex items-center gap-3">
+          <FolderOpen size={20} className="text-[color:var(--md-sys-color-primary)] shrink-0" />
+          <div>
+            <h1
+              className="text-[16px] font-semibold leading-tight text-[color:var(--md-sys-color-on-surface)]"
+              style={{ fontFamily: "'Google Sans Display', sans-serif" }}
+            >
+              {MONTH_NAMES[monthIndex]} {year}
+            </h1>
+            <p className="text-[12px] text-[color:var(--md-sys-color-on-surface-variant)] mt-0.5">
+              {contents.length} {contents.length === 1 ? 'item' : 'items'}
+            </p>
+          </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* Right: Actions */}
+        <div className="flex items-center gap-2">
           <button
             onClick={onAddContentClick}
-            className="flex items-center gap-1.5 px-4 py-1.5 bg-mac-text hover:opacity-90 text-mac-canvas text-[11px] font-bold rounded-full mac-transition"
+            className="gai-btn-filled gap-2"
           >
-            <Plus size={12} />
-            New Content
+            <Plus size={14} />
+            <span>New Content</span>
           </button>
 
           <button
             onClick={onToggleTheme}
-            className="p-1.5 rounded-full bg-mac-surface hover:bg-mac-border/50 border border-mac-border text-mac-text mac-transition"
-            title={isDarkMode ? 'Light Mode' : 'Dark Mode'}
+            className="md-icon-btn"
+            title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
           >
-            {isDarkMode ? <Sun size={14} className="text-mac-text" /> : <Moon size={14} className="text-mac-text" />}
+            {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
           </button>
         </div>
       </div>
 
-      {/* Filter and Search Bar */}
-      <div className="px-6 py-2 border-b border-mac-border/50 flex flex-col sm:flex-row gap-3 items-center justify-between shrink-0">
-        <div className="relative w-full sm:w-64">
-          <Search className="absolute left-2.5 top-1.5 text-mac-muted" size={12} />
+      {/* ── Filter + Search Bar ──────── */}
+      <div className="
+        flex flex-col sm:flex-row items-center gap-4
+        px-8 py-3 shrink-0
+        border-b border-[color:var(--md-sys-color-outline-variant)]
+        bg-[color:var(--md-sys-color-surface)]
+      ">
+        {/* Search */}
+        <div className="relative w-full sm:w-72">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[color:var(--md-sys-color-on-surface-variant)]" size={15} />
           <input
             type="text"
-            placeholder="Search content..."
+            placeholder="Search content…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-mac-surface/40 hover:bg-mac-surface/80 focus:bg-mac-surface border border-mac-border/50 rounded-full pl-7 pr-3 py-1.5 text-xs text-mac-text outline-none focus:border-mac-accent focus:ring-1 focus:ring-mac-accent/20 mac-transition placeholder-mac-muted h-9"
+            className="
+              w-full h-10 pl-11 pr-4
+              bg-[color:var(--md-sys-color-surface-container)]
+              border border-[color:var(--md-sys-color-outline-variant)]
+              rounded-full text-sm
+              text-[color:var(--md-sys-color-on-surface)]
+              placeholder:text-[color:var(--md-sys-color-on-surface-variant)]
+              outline-none transition-[border-color] duration-150
+              focus:border-[color:var(--md-sys-color-primary)] focus:border-2
+            "
           />
         </div>
 
-        {/* macOS Style Segmented Control for Group By */}
-        <div className="flex items-center gap-2 mt-2 sm:mt-0 select-none">
-          <span className="text-[10px] font-semibold text-mac-muted uppercase tracking-wider">Group By:</span>
-          <div className="flex bg-mac-surface border border-mac-border/80 rounded-full p-0.5 shadow-sm">
-            {(['none', 'instagram', 'tiktok', 'fyp'] as const).map((type) => {
-              const isActive = groupBy === type;
-              const label = type === 'none' ? 'None' : type === 'fyp' ? 'FYP' : type === 'instagram' ? 'Instagram' : 'TikTok';
-              return (
-                <button
-                  key={type}
-                  onClick={() => setGroupBy(type)}
-                  type="button"
-                  className={`px-3 py-1 text-[11px] font-bold rounded-full mac-transition cursor-pointer ${
-                    isActive 
-                      ? 'bg-mac-text text-mac-canvas shadow-sm' 
-                      : 'text-mac-text hover:bg-mac-border/30'
-                  }`}
-                >
-                  {label}
-                </button>
-              );
-            })}
+        {/* Group-by filter chips */}
+        <div className="flex items-center gap-2 select-none">
+          <span className="md-label-medium text-[color:var(--md-sys-color-on-surface-variant)] whitespace-nowrap">Group by:</span>
+          <div className="flex gap-1.5">
+            {filterOptions.map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => setGroupBy(key)}
+                type="button"
+                className={`md-chip ${groupBy === key ? 'active' : ''}`}
+                style={{ height: 32 }}
+              >
+                {label}
+              </button>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* Main List */}
-      <div className="flex-1 overflow-y-auto px-6 py-4">
+      {/* ── Table Content ─────────────── */}
+      <div className="flex-1 overflow-y-auto px-8 py-6 bg-[color:var(--md-sys-color-background)]">
         {filteredContents.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-mac-muted gap-3 py-10">
-            <FolderOpen size={40} className="opacity-20" />
+          <div className="h-full flex flex-col items-center justify-center gap-4 py-16">
+            <FolderOpen size={48} className="text-[color:var(--md-sys-color-primary)] opacity-20" />
             <div className="text-center">
-              <p className="text-sm font-semibold text-mac-text">Empty Folder</p>
-              <p className="text-xs text-mac-muted mt-1 max-w-[280px]">
-                {contents.length === 0 
+              <p className="md-title-medium text-[color:var(--md-sys-color-on-surface)]">Empty Folder</p>
+              <p className="md-body-medium text-[color:var(--md-sys-color-on-surface-variant)] mt-1 max-w-[280px]">
+                {contents.length === 0
                   ? 'No content has been added to this month yet.'
                   : 'No content matches your search.'}
               </p>
             </div>
+            {contents.length === 0 && (
+              <button onClick={onAddContentClick} className="gai-btn-tonal gap-2 mt-2">
+                <Plus size={14} />
+                Add First Content
+              </button>
+            )}
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs select-none">
-              
+          <div className="rounded-2xl border border-[color:var(--md-sys-color-outline-variant)] shadow-[var(--md-elevation-1)] overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-xs select-none">
+
+              {/* Head */}
               <thead>
-                <tr className="text-mac-muted uppercase font-semibold tracking-wider text-[10px]">
-                  <th className="py-2 px-4 text-center w-12 border-b border-mac-border/50">Day</th>
-                  <th className="py-2 px-4 min-w-[200px] border-b border-mac-border/50">Title</th>
-                  <th className="py-2 px-2 text-center w-12 border-b border-mac-border/50">App</th>
-                  <th className="py-2 px-3 text-right border-b border-mac-border/50">Views</th>
-                  <th className="py-2 px-3 text-right border-b border-mac-border/50">Likes</th>
-                  <th className="py-2 px-3 text-right border-b border-mac-border/50">Comments</th>
-                  <th className="py-2 px-3 text-right border-b border-mac-border/50">Saves</th>
-                  <th className="py-2 px-3 text-right border-b border-mac-border/50">Shares</th>
-                  <th className="py-2 px-4 text-center w-20 border-b border-mac-border/50">Badge</th>
-                  <th className="py-2 px-4 text-center w-20 border-b border-mac-border/50">Actions</th>
+                <tr className="bg-[color:var(--md-sys-color-surface-container)]">
+                  <th className="py-3.5 px-4 text-center w-12 border-b border-[color:var(--md-sys-color-outline-variant)]">
+                    <span className="md-label-small text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-widest">Day</span>
+                  </th>
+                  <th className="py-3.5 px-4 min-w-[200px] border-b border-[color:var(--md-sys-color-outline-variant)]">
+                    <span className="md-label-small text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-widest">Title</span>
+                  </th>
+                  <th className="py-3.5 px-3 text-center w-12 border-b border-[color:var(--md-sys-color-outline-variant)]">
+                    <span className="md-label-small text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-widest">App</span>
+                  </th>
+                  <th className="py-3.5 px-4 text-right border-b border-[color:var(--md-sys-color-outline-variant)]">
+                    <span className="md-label-small text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-widest">Views</span>
+                  </th>
+                  <th className="py-3.5 px-4 text-right border-b border-[color:var(--md-sys-color-outline-variant)]">
+                    <span className="md-label-small text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-widest">Likes</span>
+                  </th>
+                  <th className="py-3.5 px-4 text-right border-b border-[color:var(--md-sys-color-outline-variant)]">
+                    <span className="md-label-small text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-widest">Comments</span>
+                  </th>
+                  <th className="py-3.5 px-4 text-right border-b border-[color:var(--md-sys-color-outline-variant)]">
+                    <span className="md-label-small text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-widest">Saves</span>
+                  </th>
+                  <th className="py-3.5 px-4 text-right border-b border-[color:var(--md-sys-color-outline-variant)]">
+                    <span className="md-label-small text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-widest">Shares</span>
+                  </th>
+                  <th className="py-3.5 px-4 text-center w-20 border-b border-[color:var(--md-sys-color-outline-variant)]">
+                    <span className="md-label-small text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-widest">Badge</span>
+                  </th>
+                  <th className="py-3.5 px-4 text-center w-20 border-b border-[color:var(--md-sys-color-outline-variant)]">
+                    <span className="md-label-small text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-widest">Actions</span>
+                  </th>
                 </tr>
               </thead>
 
               {getGroupedData().map((group) => (
                 <React.Fragment key={group.title}>
+                  {/* Group Header */}
                   {groupBy !== 'none' && (
-                    <tbody className="bg-mac-surface/20 border-y border-mac-border/20">
-                      <tr>
-                        <td colSpan={10} className="py-2 px-4 font-bold text-mac-accent text-[10px] uppercase tracking-wider align-middle">
-                          {group.title} ({group.items.length} items)
+                    <tbody>
+                      <tr className="bg-[color:var(--md-sys-color-surface-container-high)]">
+                        <td colSpan={10} className="py-2.5 px-5">
+                          <span className="md-label-medium text-[color:var(--md-sys-color-primary)] uppercase tracking-[.5px]">
+                            {group.title} ({group.items.length})
+                          </span>
                         </td>
                       </tr>
                     </tbody>
                   )}
+
                   {group.items.map((item) => {
                     const showIg = groupBy === 'none' || groupBy === 'instagram' || (groupBy === 'fyp' && item.instagram.views > 20000);
                     const showTt = groupBy === 'none' || groupBy === 'tiktok' || (groupBy === 'fyp' && item.tiktok.views > 20000);
                     const rowCount = (showIg ? 1 : 0) + (showTt ? 1 : 0);
-
                     const igFyp = item.instagram.views > 20000;
                     const ttFyp = item.tiktok.views > 20000;
 
                     if (rowCount === 0) return null;
 
+                    const rowBase = 'transition-colors duration-100';
+                    const rowHover = 'hover:bg-[color:var(--md-sys-color-surface-container)]';
+
                     return (
-                      <tbody key={item.id} className="group border-b border-mac-border/30 hover:bg-mac-surface/40 mac-transition">
-                        {/* INSTAGRAM ROW */}
+                      <tbody key={item.id} className={`group border-b border-[color:var(--md-sys-color-outline-variant)] bg-[color:var(--md-sys-color-surface)] ${rowHover}`}>
+
+                        {/* Instagram row */}
                         {showIg && (
-                          <tr>
-                            <td rowSpan={rowCount} className="py-3 px-4 text-center text-mac-muted font-medium align-middle">{item.day}</td>
-                            <td rowSpan={rowCount} className="py-3 px-4 font-medium text-mac-text truncate max-w-[200px] align-middle">{item.title}</td>
-                            
-                            <td className="py-3 px-2 text-center border-b border-mac-border/10">
-                              <InstagramIcon size={14} className="text-pink-500 mx-auto" />
+                          <tr className={`${rowBase} text-[color:var(--md-sys-color-on-surface)]`}>
+                            <td rowSpan={rowCount} className="py-4 px-4 text-center font-semibold text-[color:var(--md-sys-color-on-surface-variant)] align-middle border-r border-[color:var(--md-sys-color-outline-variant)]/40">
+                              {item.day}
                             </td>
-                            <td className="py-3 px-3 text-right text-mac-text font-medium border-b border-mac-border/10">{fmtFull(item.instagram.views)}</td>
-                            <td className="py-3 px-3 text-right text-mac-text font-medium border-b border-mac-border/10">{fmtFull(item.instagram.likes)}</td>
-                            <td className="py-3 px-3 text-right text-mac-text font-medium border-b border-mac-border/10">{fmtFull(item.instagram.comments)}</td>
-                            <td className="py-3 px-3 text-right text-mac-text font-medium border-b border-mac-border/10">{fmtFull(item.instagram.saves)}</td>
-                            <td className="py-3 px-3 text-right text-mac-text font-medium border-b border-mac-border/10">{fmtFull(item.instagram.shares)}</td>
-                            <td className="py-3 px-4 text-center border-b border-mac-border/10">
-                              {igFyp ? <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[9px] font-bold uppercase tracking-wider"><Sparkles size={8} /> FYP</span> : <span className="text-mac-muted/40 text-[10px]">-</span>}
+                            <td rowSpan={rowCount} className="py-4 px-4 font-semibold text-[color:var(--md-sys-color-on-surface)] align-middle truncate max-w-[200px] border-r border-[color:var(--md-sys-color-outline-variant)]/40 group-hover:text-[color:var(--md-sys-color-primary)] transition-colors duration-150">
+                              {item.title}
                             </td>
-                            
-                            <td rowSpan={rowCount} className="py-3 px-4 text-center align-middle">
-                              <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 mac-transition">
+
+                            <td className="py-4 px-3 text-center border-b border-[color:var(--md-sys-color-outline-variant)]/30">
+                              <InstagramIcon size={15} className="mx-auto" />
+                            </td>
+                            <td className="py-4 px-4 text-right tabular-nums border-b border-[color:var(--md-sys-color-outline-variant)]/30">{fmtFull(item.instagram.views)}</td>
+                            <td className="py-4 px-4 text-right tabular-nums border-b border-[color:var(--md-sys-color-outline-variant)]/30">{fmtFull(item.instagram.likes)}</td>
+                            <td className="py-4 px-4 text-right tabular-nums border-b border-[color:var(--md-sys-color-outline-variant)]/30">{fmtFull(item.instagram.comments)}</td>
+                            <td className="py-4 px-4 text-right tabular-nums border-b border-[color:var(--md-sys-color-outline-variant)]/30">{fmtFull(item.instagram.saves)}</td>
+                            <td className="py-4 px-4 text-right tabular-nums border-b border-[color:var(--md-sys-color-outline-variant)]/30">{fmtFull(item.instagram.shares)}</td>
+                            <td className="py-4 px-4 text-center border-b border-[color:var(--md-sys-color-outline-variant)]/30">
+                              {igFyp
+                                ? <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[color:var(--md-sys-color-yellow-container)] text-[color:var(--md-sys-color-on-yellow-container)] text-[10px] font-semibold"><Sparkles size={8} /> FYP</span>
+                                : <span className="text-[color:var(--md-sys-color-outline)]/40 text-[10px]">—</span>
+                              }
+                            </td>
+
+                            <td rowSpan={rowCount} className="py-4 px-4 text-center align-middle border-l border-[color:var(--md-sys-color-outline-variant)]/40">
+                              <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
                                 <button
                                   onClick={() => onEditContentClick(item)}
-                                  className="p-1 text-mac-muted hover:text-mac-text hover:bg-mac-border/50 rounded-full mac-transition"
+                                  className="md-icon-btn-sm hover:text-[color:var(--md-sys-color-primary)]"
                                   title="Edit"
                                 >
-                                  <Edit3 size={12} />
+                                  <Edit3 size={14} />
                                 </button>
                                 <button
                                   onClick={() => onDeleteContent(item.id)}
-                                  className="p-1 text-mac-muted hover:text-red-500 hover:bg-red-500/10 rounded-full mac-transition"
+                                  className="md-icon-btn-sm hover:text-red-500 hover:bg-red-500/10"
                                   title="Delete"
                                 >
-                                  <Trash2 size={12} />
+                                  <Trash2 size={14} />
                                 </button>
                               </div>
                             </td>
                           </tr>
                         )}
 
-                        {/* TIKTOK ROW */}
+                        {/* TikTok row */}
                         {showTt && (
-                          <tr>
+                          <tr className={`${rowBase} text-[color:var(--md-sys-color-on-surface)]`}>
                             {!showIg && (
                               <>
-                                <td className="py-3 px-4 text-center text-mac-muted font-medium align-middle">{item.day}</td>
-                                <td className="py-3 px-4 font-medium text-mac-text truncate max-w-[200px] align-middle">{item.title}</td>
+                                <td className="py-4 px-4 text-center font-semibold text-[color:var(--md-sys-color-on-surface-variant)] align-middle border-r border-[color:var(--md-sys-color-outline-variant)]/40">
+                                  {item.day}
+                                </td>
+                                <td className="py-4 px-4 font-semibold text-[color:var(--md-sys-color-on-surface)] align-middle truncate max-w-[200px] border-r border-[color:var(--md-sys-color-outline-variant)]/40 group-hover:text-[color:var(--md-sys-color-primary)] transition-colors duration-150">
+                                  {item.title}
+                                </td>
                               </>
                             )}
-                            
-                            <td className="py-3 px-2 text-center">
-                              <TikTokIcon size={14} className="text-cyan-400 mx-auto" />
+                            <td className="py-4 px-3 text-center">
+                              <TikTokIcon size={15} className="mx-auto" />
                             </td>
-                            <td className="py-3 px-3 text-right text-mac-text font-medium">{fmtFull(item.tiktok.views)}</td>
-                            <td className="py-3 px-3 text-right text-mac-text font-medium">{fmtFull(item.tiktok.likes)}</td>
-                            <td className="py-3 px-3 text-right text-mac-text font-medium">{fmtFull(item.tiktok.comments)}</td>
-                            <td className="py-3 px-3 text-right text-mac-text font-medium">{fmtFull(item.tiktok.saves)}</td>
-                            <td className="py-3 px-3 text-right text-mac-text font-medium">{fmtFull(item.tiktok.shares)}</td>
-                            <td className="py-3 px-4 text-center">
-                              {ttFyp ? <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[9px] font-bold uppercase tracking-wider"><Sparkles size={8} /> FYP</span> : <span className="text-mac-muted/40 text-[10px]">-</span>}
+                            <td className="py-4 px-4 text-right tabular-nums">{fmtFull(item.tiktok.views)}</td>
+                            <td className="py-4 px-4 text-right tabular-nums">{fmtFull(item.tiktok.likes)}</td>
+                            <td className="py-4 px-4 text-right tabular-nums">{fmtFull(item.tiktok.comments)}</td>
+                            <td className="py-4 px-4 text-right tabular-nums">{fmtFull(item.tiktok.saves)}</td>
+                            <td className="py-4 px-4 text-right tabular-nums">{fmtFull(item.tiktok.shares)}</td>
+                            <td className="py-4 px-4 text-center">
+                              {ttFyp
+                                ? <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[color:var(--md-sys-color-yellow-container)] text-[color:var(--md-sys-color-on-yellow-container)] text-[10px] font-semibold"><Sparkles size={8} /> FYP</span>
+                                : <span className="text-[color:var(--md-sys-color-outline)]/40 text-[10px]">—</span>
+                              }
                             </td>
-
                             {!showIg && (
-                              <td className="py-3 px-4 text-center align-middle">
-                                <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 mac-transition">
+                              <td className="py-4 px-4 text-center align-middle border-l border-[color:var(--md-sys-color-outline-variant)]/40">
+                                <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
                                   <button
                                     onClick={() => onEditContentClick(item)}
-                                    className="p-1 text-mac-muted hover:text-mac-text hover:bg-mac-border/50 rounded-full mac-transition"
+                                    className="md-icon-btn-sm hover:text-[color:var(--md-sys-color-primary)]"
                                     title="Edit"
                                   >
-                                    <Edit3 size={12} />
+                                    <Edit3 size={14} />
                                   </button>
                                   <button
                                     onClick={() => onDeleteContent(item.id)}
-                                    className="p-1 text-mac-muted hover:text-red-500 hover:bg-red-500/10 rounded-full mac-transition"
+                                    className="md-icon-btn-sm hover:text-red-500 hover:bg-red-500/10"
                                     title="Delete"
                                   >
-                                    <Trash2 size={12} />
+                                    <Trash2 size={14} />
                                   </button>
                                 </div>
                               </td>
                             )}
                           </tr>
                         )}
+
                       </tbody>
                     );
                   })}
                 </React.Fragment>
               ))}
-
             </table>
           </div>
-        )}
+        </div>
+      )}
       </div>
     </div>
   );

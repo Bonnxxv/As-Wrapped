@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Calendar, Copy, RotateCcw } from 'lucide-react';
 import { ContentEntry, ContentMetrics } from '../types';
 import { getDaysInMonth } from '../utils/initialState';
@@ -11,32 +11,25 @@ interface ContentPopupProps {
   onSave: (entry: Omit<ContentEntry, 'id'>) => void;
   year: number;
   monthIndex: number;
-  initialEntry?: ContentEntry | null; // If editing
+  initialEntry?: ContentEntry | null;
 }
 
-const emptyMetrics: ContentMetrics = {
-  views: 0,
-  likes: 0,
-  comments: 0,
-  saves: 0,
-  shares: 0
-};
+const emptyMetrics: ContentMetrics = { views: 0, likes: 0, comments: 0, saves: 0, shares: 0 };
 
+/* ── Metric number input ──────────────────── */
 interface MetricInputProps {
   label: string;
   value: number;
   onChange: (val: number) => void;
 }
 
-const MetricInput: React.FC<MetricInputProps> = ({ 
-  label, 
-  value, 
-  onChange 
-}) => (
-  <div className="flex flex-col gap-1">
-    <span className="text-[9px] text-mac-muted uppercase font-medium">{label}</span>
-    <input 
-      type="number" 
+const MetricInput: React.FC<MetricInputProps> = ({ label, value, onChange }) => (
+  <div className="flex flex-col gap-1.5">
+    <span className="md-label-small text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-[.5px] select-none">
+      {label}
+    </span>
+    <input
+      type="number"
       value={value === 0 ? '' : value}
       onChange={(e) => {
         const parsed = parseInt(e.target.value, 10);
@@ -44,10 +37,46 @@ const MetricInput: React.FC<MetricInputProps> = ({
       }}
       onFocus={(e) => e.target.select()}
       placeholder="0"
-      className="bg-mac-canvas border border-mac-border/80 rounded-lg px-3 py-2 text-xs text-mac-text outline-none focus:border-mac-accent focus:ring-1 focus:ring-mac-accent/20 mac-transition h-10 w-full"
+      className="gai-input h-[44px] text-sm"
       min="0"
     />
   </div>
+);
+
+/* ── M3 Toggle Switch ─────────────────────── */
+interface SwitchProps {
+  checked: boolean;
+  onChange: (v: boolean) => void;
+  label?: string;
+}
+const MdSwitch: React.FC<SwitchProps> = ({ checked, onChange }) => (
+  <button
+    type="button"
+    role="switch"
+    aria-checked={checked}
+    onClick={() => onChange(!checked)}
+    className={`
+      relative inline-flex h-[28px] w-[52px] shrink-0 cursor-pointer rounded-full items-center px-[3px]
+      transition-colors duration-200 outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--md-sys-color-primary)]
+      ${checked
+        ? 'bg-[color:var(--md-sys-color-primary)]'
+        : 'bg-[color:var(--md-sys-color-surface-container-highest,var(--md-sys-color-surface-variant))] border-2 border-[color:var(--md-sys-color-outline)]'
+      }
+    `}
+    style={{ transitionTimingFunction: 'cubic-bezier(0.2, 0, 0, 1)' }}
+  >
+    <span
+      className={`
+        pointer-events-none rounded-full shadow-sm flex items-center justify-center
+        transition-all duration-200
+        ${checked
+          ? 'h-[22px] w-[22px] bg-white translate-x-[24px]'
+          : 'h-[16px] w-[16px] bg-[color:var(--md-sys-color-outline)] translate-x-0'
+        }
+      `}
+      style={{ transitionTimingFunction: 'cubic-bezier(0.2, 0, 0, 1)' }}
+    />
+  </button>
 );
 
 export const ContentPopup: React.FC<ContentPopupProps> = ({
@@ -58,275 +87,260 @@ export const ContentPopup: React.FC<ContentPopupProps> = ({
   monthIndex,
   initialEntry
 }) => {
+  /* ── Form state ──────────────────── */
   const [day, setDay] = useState<number>(1);
   const [title, setTitle] = useState<string>('');
-  
   const [igMetrics, setIgMetrics] = useState<ContentMetrics>(emptyMetrics);
   const [ttMetrics, setTtMetrics] = useState<ContentMetrics>(emptyMetrics);
+  const [isInstagramActive, setIsInstagramActive] = useState(true);
+  const [isTiktokActive, setIsTiktokActive] = useState(true);
 
-  // Platform active states
-  const [isInstagramActive, setIsInstagramActive] = useState<boolean>(true);
-  const [isTiktokActive, setIsTiktokActive] = useState<boolean>(true);
+  /* ── M3 Dialog Animation state ──── */
+  // Phase: 'hidden' | 'visible' | 'exiting'
+  const [phase, setPhase] = useState<'hidden' | 'visible' | 'exiting'>('hidden');
+  const exitTimerRef = useRef<any>(null);
 
-  const totalDays = getDaysInMonth(year, monthIndex);
-  const daysArray = Array.from({ length: totalDays }, (_, i) => i + 1);
-  const dateOptions = daysArray.map(d => ({ value: d, label: `Day ${d}` }));
+  useEffect(() => {
+    if (isOpen) {
+      // Reset any ongoing exit
+      clearTimeout(exitTimerRef.current);
+      setPhase('visible');
+    } else {
+      if (phase !== 'hidden') {
+        setPhase('exiting');
+        exitTimerRef.current = setTimeout(() => setPhase('hidden'), 300);
+      }
+    }
+    return () => clearTimeout(exitTimerRef.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
+  /* ── Populate form on entry change ─ */
   useEffect(() => {
     if (initialEntry) {
       setDay(initialEntry.day);
       setTitle(initialEntry.title);
       setIgMetrics(initialEntry.instagram);
       setTtMetrics(initialEntry.tiktok);
-
-      const hasIg = initialEntry.instagram.views > 0 || initialEntry.instagram.likes > 0 || initialEntry.instagram.comments > 0 || initialEntry.instagram.saves > 0 || initialEntry.instagram.shares > 0;
-      const hasTt = initialEntry.tiktok.views > 0 || initialEntry.tiktok.likes > 0 || initialEntry.tiktok.comments > 0 || initialEntry.tiktok.saves > 0 || initialEntry.tiktok.shares > 0;
-
-      if (hasIg && !hasTt) {
-        setIsInstagramActive(true);
-        setIsTiktokActive(false);
-      } else if (!hasIg && hasTt) {
-        setIsInstagramActive(false);
-        setIsTiktokActive(true);
-      } else {
-        setIsInstagramActive(true);
-        setIsTiktokActive(true);
-      }
+      const hasIg = Object.values(initialEntry.instagram).some(v => v > 0);
+      const hasTt = Object.values(initialEntry.tiktok).some(v => v > 0);
+      if (hasIg && !hasTt) { setIsInstagramActive(true); setIsTiktokActive(false); }
+      else if (!hasIg && hasTt) { setIsInstagramActive(false); setIsTiktokActive(true); }
+      else { setIsInstagramActive(true); setIsTiktokActive(true); }
     } else {
-      setDay(1);
-      setTitle('');
-      setIgMetrics(emptyMetrics);
-      setTtMetrics(emptyMetrics);
-      setIsInstagramActive(true);
-      setIsTiktokActive(true);
+      setDay(1); setTitle('');
+      setIgMetrics(emptyMetrics); setTtMetrics(emptyMetrics);
+      setIsInstagramActive(true); setIsTiktokActive(true);
     }
   }, [initialEntry, isOpen, year, monthIndex]);
 
-  if (!isOpen) return null;
+  if (phase === 'hidden') return null;
 
+  /* ── Derived ─────────────────────── */
+  const totalDays = getDaysInMonth(year, monthIndex);
+  const dateOptions = Array.from({ length: totalDays }, (_, i) => ({ value: i + 1, label: `Day ${i + 1}` }));
+
+  const isVisible = phase === 'visible';
+
+  /* ── Handlers ───────────────────── */
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) {
-      alert('Content title is required!');
-      return;
-    }
-      
+    if (!title.trim()) { alert('Content title is required!'); return; }
     onSave({
       day,
       title: title.trim(),
       instagram: isInstagramActive ? igMetrics : emptyMetrics,
       tiktok: isTiktokActive ? ttMetrics : emptyMetrics
     });
-    
     onClose();
   };
 
-  // UX Actions
-  const mirrorToTiktok = () => {
-    setTtMetrics({ ...igMetrics });
-  };
+  /* ── CSS classes for animation ──── */
+  // Backdrop
+  const backdropCls = [
+    'fixed inset-0 z-50 flex items-center justify-center p-4',
+    'transition-[background-color,backdrop-filter]',
+    isVisible
+      ? 'bg-black/40 backdrop-blur-[3px]'
+      : 'bg-black/0 backdrop-blur-none pointer-events-none',
+  ].join(' ');
 
-  const mirrorToInstagram = () => {
-    setIgMetrics({ ...ttMetrics });
-  };
-
-  const clearInstagram = () => {
-    setIgMetrics(emptyMetrics);
-  };
-
-  const clearTiktok = () => {
-    setTtMetrics(emptyMetrics);
+  // Panel (enter: standard-decelerate, exit: standard-accelerate)
+  const panelStyle: React.CSSProperties = {
+    transitionProperty: 'opacity, transform',
+    transitionDuration: isVisible ? '300ms' : '180ms',
+    transitionTimingFunction: isVisible
+      ? 'cubic-bezier(0.2, 0, 0, 1)'        // M3 standard / decelerate
+      : 'cubic-bezier(0.3, 0, 1, 1)',        // M3 standard / accelerate
+    opacity: isVisible ? 1 : 0,
+    transform: isVisible ? 'scale(1) translateY(0)' : 'scale(0.95) translateY(12px)',
+    willChange: 'transform, opacity',
   };
 
   return (
-    <div className="fixed inset-0 z-50 mac-backdrop flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="bg-mac-panel border border-mac-border shadow-mac-popover w-full max-w-2xl overflow-hidden mac-spring-popup rounded-2xl">
-        
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-mac-border/50 bg-mac-sidebar">
-          <div className="flex items-center gap-2">
-            <h2 className="text-sm font-bold text-mac-text">
-              {initialEntry ? 'Edit Mirrored Content' : 'New Mirrored Content'}
-            </h2>
-          </div>
-          <button 
-            type="button" 
-            onClick={onClose} 
-            className="text-mac-muted hover:text-mac-text rounded-full p-1.5 mac-transition"
+    <div className={backdropCls} style={{ transitionDuration: isVisible ? '300ms' : '200ms', transitionProperty: 'background-color, backdrop-filter', transitionTimingFunction: 'cubic-bezier(0.2, 0, 0, 1)' }}>
+      <div
+        className="
+          bg-[color:var(--md-sys-color-surface)]
+          border border-[color:var(--md-sys-color-outline-variant)]
+          shadow-[var(--md-elevation-3)]
+          w-full max-w-2xl rounded-3xl overflow-hidden
+          max-h-[90vh] flex flex-col
+        "
+        style={panelStyle}
+        onClick={e => e.stopPropagation()}
+      >
+        {/* ─── Header ───────────────────── */}
+        <div className="
+          flex items-center justify-between px-6 py-5
+          border-b border-[color:var(--md-sys-color-outline-variant)]
+        ">
+          <h2 className="md-title-large text-[color:var(--md-sys-color-on-surface)]">
+            {initialEntry ? 'Edit Content' : 'New Content'}
+          </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="md-icon-btn"
           >
-            <X size={14} />
+            <X size={18} />
           </button>
         </div>
 
-        {/* Content */}
-        <form onSubmit={handleSubmit} className="p-5 flex flex-col gap-5 text-sm bg-mac-canvas">
-          
-          <div className="grid grid-cols-2 gap-6">
+        {/* ─── Form ─────────────────────── */}
+        <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-6 overflow-y-auto min-h-0 flex-1">
+
+          {/* Row 1: Date + Title */}
+          <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs text-mac-muted font-bold flex items-center gap-1.5 select-none">
+              <label className="md-label-medium text-[color:var(--md-sys-color-on-surface-variant)] flex items-center gap-1.5">
                 <Calendar size={13} />
-                Select Date
+                Date
               </label>
-              <MacDropdown
-                value={day}
-                onChange={setDay}
-                options={dateOptions}
-                className="w-full"
-              />
+              <MacDropdown value={day} onChange={setDay} options={dateOptions} className="w-full" />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs text-mac-muted font-bold select-none">Content Title</label>
-              <input 
-                type="text" 
-                placeholder="Enter title..."
+              <label className="md-label-medium text-[color:var(--md-sys-color-on-surface-variant)]">
+                Content Title
+              </label>
+              <input
+                type="text"
+                placeholder="Enter title…"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="bg-mac-canvas border border-mac-border/80 rounded-lg px-3 py-2 text-sm text-mac-text outline-none focus:border-mac-accent focus:ring-1 focus:ring-mac-accent/20 mac-transition h-[44px] w-full"
+                className="gai-input h-[44px]"
                 required
               />
             </div>
           </div>
 
-          <div className="border-t border-mac-border/30 my-1"></div>
+          {/* Divider */}
+          <div className="md-divider" />
 
-          {/* TWO COLUMNS FOR METRICS */}
+          {/* Row 2: Platform Metrics */}
           <div className="grid grid-cols-2 gap-8">
-            
-            {/* INSTAGRAM COLUMN */}
-            <div className="flex flex-col min-h-[290px]">
-              <div className="flex items-center justify-between mb-3 pb-2 border-b border-mac-border/30 select-none">
+
+            {/* ── Instagram ─── */}
+            <div className="flex flex-col">
+              <div className="flex items-center justify-between mb-4 select-none">
                 <div className="flex items-center gap-2">
-                  <InstagramIcon size={14} className={isInstagramActive ? "text-pink-500" : "text-mac-muted"} />
-                  <label className={`text-xs font-bold ${isInstagramActive ? "text-mac-text" : "text-mac-muted"}`}>Instagram Metrics</label>
+                  <InstagramIcon size={16} className={isInstagramActive ? 'shrink-0' : 'shrink-0 grayscale opacity-40'} />
+                  <span className={`md-label-large ${isInstagramActive ? 'text-[color:var(--md-sys-color-on-surface)]' : 'text-[color:var(--md-sys-color-on-surface-variant)]'}`}>
+                    Instagram
+                  </span>
                 </div>
-                
-                {/* Custom Toggle Switch */}
-                <button
-                  type="button"
-                  onClick={() => setIsInstagramActive(!isInstagramActive)}
-                  className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out outline-none ${
-                    isInstagramActive ? 'bg-mac-accent' : 'bg-mac-surface'
-                  }`}
-                >
-                  <span
-                    className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                      isInstagramActive ? 'translate-x-4' : 'translate-x-0'
-                    }`}
-                  />
-                </button>
+                <MdSwitch checked={isInstagramActive} onChange={setIsInstagramActive} />
               </div>
 
               {isInstagramActive ? (
-                <div className="flex-1 flex flex-col justify-between">
+                <div className="flex flex-col gap-2">
                   <div className="grid grid-cols-2 gap-3">
-                    <MetricInput label="Views" value={igMetrics.views} onChange={(v) => setIgMetrics({...igMetrics, views: v})} />
-                    <MetricInput label="Likes" value={igMetrics.likes} onChange={(v) => setIgMetrics({...igMetrics, likes: v})} />
-                    <MetricInput label="Comments" value={igMetrics.comments} onChange={(v) => setIgMetrics({...igMetrics, comments: v})} />
-                    <MetricInput label="Saves" value={igMetrics.saves} onChange={(v) => setIgMetrics({...igMetrics, saves: v})} />
-                    <MetricInput label="Shares" value={igMetrics.shares} onChange={(v) => setIgMetrics({...igMetrics, shares: v})} />
+                    <MetricInput label="Views"    value={igMetrics.views}    onChange={v => setIgMetrics({...igMetrics, views: v})} />
+                    <MetricInput label="Likes"    value={igMetrics.likes}    onChange={v => setIgMetrics({...igMetrics, likes: v})} />
+                    <MetricInput label="Comments" value={igMetrics.comments} onChange={v => setIgMetrics({...igMetrics, comments: v})} />
+                    <MetricInput label="Saves"    value={igMetrics.saves}    onChange={v => setIgMetrics({...igMetrics, saves: v})} />
+                    <MetricInput label="Shares"   value={igMetrics.shares}   onChange={v => setIgMetrics({...igMetrics, shares: v})} />
                   </div>
-                  
-                  <div className="flex items-center justify-between mt-4">
+                  <div className="flex items-center justify-between mt-2">
                     {isTiktokActive && (
-                      <button
-                        type="button"
-                        onClick={mirrorToTiktok}
-                        className="flex items-center gap-1 text-[10px] font-bold text-mac-accent hover:text-mac-accentHover mac-transition cursor-pointer"
-                        title="Copy Instagram metrics to TikTok"
-                      >
-                        <Copy size={10} /> Mirror to TikTok
+                      <button type="button" onClick={() => setTtMetrics({...igMetrics})}
+                        className="flex items-center gap-1 text-xs font-medium text-[color:var(--md-sys-color-primary)] hover:underline cursor-pointer transition-colors duration-150"
+                        title="Mirror to TikTok">
+                        <Copy size={11} /> Mirror to TikTok
                       </button>
                     )}
-                    <button
-                      type="button"
-                      onClick={clearInstagram}
-                      className="flex items-center gap-1 text-[10px] font-bold text-mac-muted hover:text-red-500 mac-transition cursor-pointer ml-auto"
-                    >
-                      <RotateCcw size={10} /> Reset
+                    <button type="button" onClick={() => setIgMetrics(emptyMetrics)}
+                      className="flex items-center gap-1 text-xs font-medium text-[color:var(--md-sys-color-on-surface-variant)] hover:text-red-500 cursor-pointer transition-colors duration-150 ml-auto">
+                      <RotateCcw size={11} /> Reset
                     </button>
                   </div>
                 </div>
               ) : (
-                <div className="flex-1 flex flex-col items-center justify-center text-center p-6 border border-mac-border/30 bg-mac-sidebar/40 rounded-2xl min-h-[220px] mac-transition select-none">
-                  <InstagramIcon size={24} className="text-mac-muted opacity-30 mb-2" />
-                  <span className="text-xs font-bold text-mac-muted mb-1">Instagram Off</span>
-                  <p className="text-[10px] text-mac-muted max-w-[170px] leading-relaxed mb-3">No stats are being tracked on Instagram for this entry.</p>
-                  <button 
-                    type="button" 
-                    onClick={() => setIsInstagramActive(true)}
-                    className="px-3 py-1 rounded-full bg-mac-surface hover:bg-mac-border/50 text-[10px] font-bold text-mac-text mac-transition border border-mac-border"
-                  >
-                    Enable Stats
+                <div className="
+                  flex-1 flex flex-col items-center justify-center text-center p-6
+                  bg-[color:var(--md-sys-color-surface-container)]
+                  rounded-2xl min-h-[200px] select-none gap-3
+                ">
+                  <InstagramIcon size={28} className="grayscale opacity-30" />
+                  <div>
+                    <p className="md-label-large text-[color:var(--md-sys-color-on-surface-variant)]">Instagram Off</p>
+                    <p className="md-body-small text-[color:var(--md-sys-color-on-surface-variant)] mt-1 max-w-[160px]">Not tracking Instagram stats for this entry.</p>
+                  </div>
+                  <button type="button" onClick={() => setIsInstagramActive(true)} className="gai-btn-outlined" style={{ height: 32, padding: '0 16px', fontSize: 12 }}>
+                    Enable
                   </button>
                 </div>
               )}
             </div>
 
-            {/* TIKTOK COLUMN */}
-            <div className="flex flex-col min-h-[290px]">
-              <div className="flex items-center justify-between mb-3 pb-2 border-b border-mac-border/30 select-none">
+            {/* ── TikTok ─── */}
+            <div className="flex flex-col">
+              <div className="flex items-center justify-between mb-4 select-none">
                 <div className="flex items-center gap-2">
-                  <TikTokIcon size={14} className={isTiktokActive ? "text-cyan-400" : "text-mac-muted"} />
-                  <label className={`text-xs font-bold ${isTiktokActive ? "text-mac-text" : "text-mac-muted"}`}>TikTok Metrics</label>
+                  <TikTokIcon size={16} className={isTiktokActive ? 'shrink-0' : 'shrink-0 grayscale opacity-40'} />
+                  <span className={`md-label-large ${isTiktokActive ? 'text-[color:var(--md-sys-color-on-surface)]' : 'text-[color:var(--md-sys-color-on-surface-variant)]'}`}>
+                    TikTok
+                  </span>
                 </div>
-                
-                {/* Custom Toggle Switch */}
-                <button
-                  type="button"
-                  onClick={() => setIsTiktokActive(!isTiktokActive)}
-                  className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out outline-none ${
-                    isTiktokActive ? 'bg-mac-accent' : 'bg-mac-surface'
-                  }`}
-                >
-                  <span
-                    className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                      isTiktokActive ? 'translate-x-4' : 'translate-x-0'
-                    }`}
-                  />
-                </button>
+                <MdSwitch checked={isTiktokActive} onChange={setIsTiktokActive} />
               </div>
 
               {isTiktokActive ? (
-                <div className="flex-1 flex flex-col justify-between">
+                <div className="flex flex-col gap-2">
                   <div className="grid grid-cols-2 gap-3">
-                    <MetricInput label="Views" value={ttMetrics.views} onChange={(v) => setTtMetrics({...ttMetrics, views: v})} />
-                    <MetricInput label="Likes" value={ttMetrics.likes} onChange={(v) => setTtMetrics({...ttMetrics, likes: v})} />
-                    <MetricInput label="Comments" value={ttMetrics.comments} onChange={(v) => setTtMetrics({...ttMetrics, comments: v})} />
-                    <MetricInput label="Saves" value={ttMetrics.saves} onChange={(v) => setTtMetrics({...ttMetrics, saves: v})} />
-                    <MetricInput label="Shares" value={ttMetrics.shares} onChange={(v) => setTtMetrics({...ttMetrics, shares: v})} />
+                    <MetricInput label="Views"    value={ttMetrics.views}    onChange={v => setTtMetrics({...ttMetrics, views: v})} />
+                    <MetricInput label="Likes"    value={ttMetrics.likes}    onChange={v => setTtMetrics({...ttMetrics, likes: v})} />
+                    <MetricInput label="Comments" value={ttMetrics.comments} onChange={v => setTtMetrics({...ttMetrics, comments: v})} />
+                    <MetricInput label="Saves"    value={ttMetrics.saves}    onChange={v => setTtMetrics({...ttMetrics, saves: v})} />
+                    <MetricInput label="Shares"   value={ttMetrics.shares}   onChange={v => setTtMetrics({...ttMetrics, shares: v})} />
                   </div>
-                  
-                  <div className="flex items-center justify-between mt-4">
+                  <div className="flex items-center justify-between mt-2">
                     {isInstagramActive && (
-                      <button
-                        type="button"
-                        onClick={mirrorToInstagram}
-                        className="flex items-center gap-1 text-[10px] font-bold text-mac-accent hover:text-mac-accentHover mac-transition cursor-pointer"
-                        title="Copy TikTok metrics to Instagram"
-                      >
-                        <Copy size={10} /> Mirror to Instagram
+                      <button type="button" onClick={() => setIgMetrics({...ttMetrics})}
+                        className="flex items-center gap-1 text-xs font-medium text-[color:var(--md-sys-color-primary)] hover:underline cursor-pointer transition-colors duration-150"
+                        title="Mirror to Instagram">
+                        <Copy size={11} /> Mirror to Instagram
                       </button>
                     )}
-                    <button
-                      type="button"
-                      onClick={clearTiktok}
-                      className="flex items-center gap-1 text-[10px] font-bold text-mac-muted hover:text-red-500 mac-transition cursor-pointer ml-auto"
-                    >
-                      <RotateCcw size={10} /> Reset
+                    <button type="button" onClick={() => setTtMetrics(emptyMetrics)}
+                      className="flex items-center gap-1 text-xs font-medium text-[color:var(--md-sys-color-on-surface-variant)] hover:text-red-500 cursor-pointer transition-colors duration-150 ml-auto">
+                      <RotateCcw size={11} /> Reset
                     </button>
                   </div>
                 </div>
               ) : (
-                <div className="flex-1 flex flex-col items-center justify-center text-center p-6 border border-mac-border/30 bg-mac-sidebar/40 rounded-2xl min-h-[220px] mac-transition select-none">
-                  <TikTokIcon size={24} className="text-mac-muted opacity-30 mb-2" />
-                  <span className="text-xs font-bold text-mac-muted mb-1">TikTok Off</span>
-                  <p className="text-[10px] text-mac-muted max-w-[170px] leading-relaxed mb-3">No stats are being tracked on TikTok for this entry.</p>
-                  <button 
-                    type="button" 
-                    onClick={() => setIsTiktokActive(true)}
-                    className="px-3 py-1 rounded-full bg-mac-surface hover:bg-mac-border/50 text-[10px] font-bold text-mac-text mac-transition border border-mac-border"
-                  >
-                    Enable Stats
+                <div className="
+                  flex-1 flex flex-col items-center justify-center text-center p-6
+                  bg-[color:var(--md-sys-color-surface-container)]
+                  rounded-2xl min-h-[200px] select-none gap-3
+                ">
+                  <TikTokIcon size={28} className="grayscale opacity-30" />
+                  <div>
+                    <p className="md-label-large text-[color:var(--md-sys-color-on-surface-variant)]">TikTok Off</p>
+                    <p className="md-body-small text-[color:var(--md-sys-color-on-surface-variant)] mt-1 max-w-[160px]">Not tracking TikTok stats for this entry.</p>
+                  </div>
+                  <button type="button" onClick={() => setIsTiktokActive(true)} className="gai-btn-outlined" style={{ height: 32, padding: '0 16px', fontSize: 12 }}>
+                    Enable
                   </button>
                 </div>
               )}
@@ -334,19 +348,13 @@ export const ContentPopup: React.FC<ContentPopupProps> = ({
 
           </div>
 
-          <div className="flex gap-2 justify-end mt-4 pt-4 border-t border-mac-border/30 text-xs select-none">
-            <button 
-              type="button" 
-              onClick={onClose} 
-              className="px-5 py-2 rounded-full border border-mac-border bg-mac-canvas hover:bg-mac-surface text-mac-text font-bold text-xs mac-transition"
-            >
+          {/* ─── Footer Actions ────────── */}
+          <div className="flex gap-3 justify-end pt-2 border-t border-[color:var(--md-sys-color-outline-variant)]">
+            <button type="button" onClick={onClose} className="gai-btn-text">
               Cancel
             </button>
-            <button 
-              type="submit" 
-              className="px-5 py-2 rounded-full bg-mac-accent hover:bg-mac-accentHover text-white font-bold text-xs mac-transition shadow-sm"
-            >
-              {initialEntry ? 'Save Changes' : 'Add Mirrored Content'}
+            <button type="submit" className="gai-btn-filled">
+              {initialEntry ? 'Save Changes' : 'Add Content'}
             </button>
           </div>
 

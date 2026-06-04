@@ -1,142 +1,683 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300..700;1,300..700&display=swap');
+/* ══════════════════════════════════════════
+   GOOGLE MATERIAL DESIGN 3 — DESIGN SYSTEM
+   Asrep Tracker · Total Rewrite v2
+   ══════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Google+Sans+Display:wght@400;500;700&family=Roboto:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap');
 @import "tailwindcss";
 
+/* ── Tailwind Theme Overrides ───────────────── */
 @theme {
-  --font-sans: "Montserrat", "Optimistic VF", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  
-  --color-mac-canvas: var(--mac-canvas);
-  --color-mac-sidebar: var(--mac-sidebar);
-  --color-mac-panel: var(--mac-panel);
-  --color-mac-surface: var(--mac-surface);
-  --color-mac-border: var(--mac-border);
-  --color-mac-text: var(--mac-text);
-  --color-mac-muted: var(--mac-muted);
-  --color-mac-traffic-red: #FF5F56;
-  --color-mac-traffic-yellow: #FFBD2E;
-  --color-mac-traffic-green: #27C93F;
-  --color-mac-accent: var(--mac-accent);
-  --color-mac-accentHover: var(--mac-accentHover);
+  --font-sans: "Google Sans", "Roboto", system-ui, sans-serif;
+  --font-display: "Google Sans Display", "Google Sans", system-ui, sans-serif;
 
-  --shadow-mac-shadow: var(--mac-shadow);
-  --shadow-mac-popover: var(--mac-popover);
-  --shadow-mac-inset: var(--mac-inset);
+  /* Shape Scale (M3) */
+  --radius-none:   0px;
+  --radius-xs:     4px;
+  --radius-sm:     8px;
+  --radius-md:     12px;
+  --radius-lg:     16px;
+  --radius-xl:     20px;
+  --radius-2xl:    24px;
+  --radius-3xl:    28px;
+  --radius-full:   9999px;
 
-  /* Meta border radiuses */
-  --radius-xs: 2px;
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
-  --radius-xl: 16px;
-  --radius-xxl: 24px;
-  --radius-xxxl: 32px;
-  --radius-feature: 40px;
-  --radius-full: 100px;
+  /* Color tokens wired through CSS vars */
+  --color-md-background:         var(--md-sys-color-background);
+  --color-md-surface:            var(--md-sys-color-surface);
+  --color-md-surface-variant:    var(--md-sys-color-surface-variant);
+  --color-md-surface-container:  var(--md-sys-color-surface-container);
+  --color-md-surface-container-high: var(--md-sys-color-surface-container-high);
+  --color-md-outline:            var(--md-sys-color-outline);
+  --color-md-outline-variant:    var(--md-sys-color-outline-variant);
+  --color-md-on-surface:         var(--md-sys-color-on-surface);
+  --color-md-on-surface-variant: var(--md-sys-color-on-surface-variant);
+  --color-md-primary:            var(--md-sys-color-primary);
+  --color-md-on-primary:         var(--md-sys-color-on-primary);
+  --color-md-primary-container:  var(--md-sys-color-primary-container);
+  --color-md-on-primary-container: var(--md-sys-color-on-primary-container);
+  --color-md-error:              var(--md-sys-color-error);
+  --color-md-on-error:           var(--md-sys-color-on-error);
+  --color-md-error-container:    var(--md-sys-color-error-container);
+  --color-md-on-error-container: var(--md-sys-color-on-error-container);
+
+  /* Legacy aliases — these map mac-* Tailwind classes to M3 tokens */
+  --color-mac-canvas:       var(--md-sys-color-background);
+  --color-mac-sidebar:      var(--md-sys-color-surface-container);
+  --color-mac-panel:        var(--md-sys-color-surface);
+  --color-mac-surface:      var(--md-sys-color-surface-variant);
+  --color-mac-border:       var(--md-sys-color-outline-variant);
+  --color-mac-text:         var(--md-sys-color-on-surface);
+  --color-mac-muted:        var(--md-sys-color-on-surface-variant);
+  --color-mac-accent:       var(--md-sys-color-primary);
+  --color-mac-accentHover:  var(--md-sys-color-primary-container);
+  --color-mac-text-accent:  var(--md-sys-color-on-primary);
 }
 
+/* ── Light Theme (Google Soft Palette) ─────── */
 :root {
-  /* Meta Light Theme System */
-  --mac-canvas: #FFFFFF;      /* Stark white canvas */
-  --mac-sidebar: #F1F4F7;     /* Soft cloud off-white sidebar */
-  --mac-panel: #FFFFFF;       /* Pure white product cards */
-  --mac-surface: #DEE3E9;     /* Hairline soft hover / tertiary boundaries */
-  --mac-border: #CED0D4;      /* Hairline boundary standard */
-  --mac-text: #0A1317;        /* Deep Ink primary text */
-  --mac-muted: #5D6C7B;       /* Slate / Steel secondary text */
-  --mac-accent: #0064E0;      /* Cobalt Blue Buy-Now Primary */
-  --mac-accentHover: #0457CB; /* Pressed deep cobalt */
-  
-  --mac-shadow: rgba(20, 22, 26, 0.04) 0px 1px 2px 0px; /* Quieter, no heavy shadows */
-  --mac-popover: rgba(20, 22, 26, 0.12) 0px 4px 12px 0px; 
-  --mac-inset: none;
-  --mac-glass-bg: rgba(241, 244, 247, 0.85);
+  /* M3 Reference Palette → System tokens (Light) */
+  --md-sys-color-primary:                  #1a73e8;
+  --md-sys-color-on-primary:               #ffffff;
+  --md-sys-color-primary-container:        #e8f0fe;
+  --md-sys-color-on-primary-container:     #174ea6;
+
+  --md-sys-color-secondary:                #1e8e3e;
+  --md-sys-color-on-secondary:             #ffffff;
+  --md-sys-color-secondary-container:      #e6f4ea;
+  --md-sys-color-on-secondary-container:   #137333;
+
+  --md-sys-color-error:                    #d93025;
+  --md-sys-color-on-error:                 #ffffff;
+  --md-sys-color-error-container:          #fce8e6;
+  --md-sys-color-on-error-container:       #c5221f;
+
+  --md-sys-color-background:               #f8f9fa;
+  --md-sys-color-on-background:            #202124;
+
+  --md-sys-color-surface:                  #ffffff;
+  --md-sys-color-on-surface:               #202124;
+  --md-sys-color-surface-variant:          #f1f3f4;
+  --md-sys-color-on-surface-variant:       #5f6368;
+
+  --md-sys-color-surface-container-lowest: #ffffff;
+  --md-sys-color-surface-container-low:    #f8f9fa;
+  --md-sys-color-surface-container:        #f1f3f4;
+  --md-sys-color-surface-container-high:   #e8eaed;
+  --md-sys-color-surface-container-highest:#dadce0;
+
+  --md-sys-color-outline:                  #80868b;
+  --md-sys-color-outline-variant:          #dadce0;
+
+  /* Google Soft Palette additions (Light) */
+  --md-sys-color-cyan:                     #00acc1;
+  --md-sys-color-cyan-container:           #e0f7fa;
+  --md-sys-color-on-cyan-container:        #006064;
+
+  --md-sys-color-yellow:                   #f9ab00;
+  --md-sys-color-yellow-container:         #fef7e0;
+  --md-sys-color-on-yellow-container:      #b06000;
+
+  /* Elevation Shadows (M3) */
+  --md-elevation-0: none;
+  --md-elevation-1: 0 1px 2px rgba(0,0,0,.06), 0 1px 3px 1px rgba(0,0,0,.04);
+  --md-elevation-2: 0 1px 2px rgba(0,0,0,.06), 0 2px 6px 2px rgba(0,0,0,.06);
+  --md-elevation-3: 0 4px 8px 3px rgba(0,0,0,.07), 0 1px 3px rgba(0,0,0,.06);
+
+  /* Legacy shadow aliases */
+  --mac-shadow:   var(--md-elevation-1);
+  --mac-popover:  var(--md-elevation-3);
 }
 
+/* ── Dark Theme (Google Soft Palette) ──────── */
 .dark {
-  /* Meta Premium Dark Theme System */
-  --mac-canvas: #0A1317;      /* Obsidian Deep Ink canvas */
-  --mac-sidebar: #151C20;     /* Slate-Obsidian dark sidebar */
-  --mac-panel: #101A1E;       /* Card backgrounds */
-  --mac-surface: #212C32;     /* Dark hover surfaces */
-  --mac-border: #2E3B43;      /* Hairline soft gray-blue */
-  --mac-text: #F1F4F7;        /* Soft canvas white typography */
-  --mac-muted: #8595A4;       /* Slate / Stone muted text */
-  --mac-accent: #0091FF;      /* Soft Cobalt active highlight */
-  --mac-accentHover: #0064E0; /* Pressed Cobalt hover */
-  
-  --mac-shadow: none;
-  --mac-popover: rgba(0, 0, 0, 0.45) 0px 8px 24px 0px;
-  --mac-inset: none;
-  --mac-glass-bg: rgba(21, 28, 32, 0.85);
+  --md-sys-color-primary:                  #aecbfa;
+  --md-sys-color-on-primary:               #174ea6;
+  --md-sys-color-primary-container:        #185abc;
+  --md-sys-color-on-primary-container:     #e8f0fe;
+
+  --md-sys-color-secondary:                #a8dab5;
+  --md-sys-color-on-secondary:             #137333;
+  --md-sys-color-secondary-container:      #1b5e20;
+  --md-sys-color-on-secondary-container:   #e6f4ea;
+
+  --md-sys-color-error:                    #f28b82;
+  --md-sys-color-on-error:                 #c5221f;
+  --md-sys-color-error-container:          #8c1d18;
+  --md-sys-color-on-error-container:       #fce8e6;
+
+  --md-sys-color-background:               #202124;
+  --md-sys-color-on-background:            #e8eaed;
+
+  --md-sys-color-surface:                  #303134;
+  --md-sys-color-on-surface:               #e8eaed;
+  --md-sys-color-surface-variant:          #3c4043;
+  --md-sys-color-on-surface-variant:       #9aa0a6;
+
+  --md-sys-color-surface-container-lowest: #202124;
+  --md-sys-color-surface-container-low:    #292a2d;
+  --md-sys-color-surface-container:        #303134;
+  --md-sys-color-surface-container-high:   #3c4043;
+  --md-sys-color-surface-container-highest:#5f6368;
+
+  --md-sys-color-outline:                  #9aa0a6;
+  --md-sys-color-outline-variant:          #5f6368;
+
+  /* Google Soft Palette additions (Dark) */
+  --md-sys-color-cyan:                     #80deea;
+  --md-sys-color-cyan-container:           #00485c;
+  --md-sys-color-on-cyan-container:        #e0f7fa;
+
+  --md-sys-color-yellow:                   #fde293;
+  --md-sys-color-yellow-container:         #5c4000;
+  --md-sys-color-on-yellow-container:      #fef7e0;
+
+  --md-elevation-1: 0 1px 2px rgba(0,0,0,.3), 0 1px 3px 1px rgba(0,0,0,.15);
+  --md-elevation-2: 0 1px 2px rgba(0,0,0,.3), 0 2px 6px 2px rgba(0,0,0,.15);
+  --md-elevation-3: 0 4px 8px 3px rgba(0,0,0,.2), 0 1px 3px rgba(0,0,0,.3);
+
+  --mac-shadow:  var(--md-elevation-1);
+  --mac-popover: var(--md-elevation-3);
 }
 
+/* ══════════════════════════════════════════
+   BASE STYLES
+   ══════════════════════════════════════════ */
 @layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
   body {
-    @apply text-mac-text font-sans antialiased selection:bg-mac-accent selection:text-white transition-colors duration-200;
+    font-family: "Google Sans", "Roboto", system-ui, sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--md-sys-color-on-surface);
+    background-color: var(--md-sys-color-background);
     overflow: hidden;
-    background-color: var(--mac-canvas);
+    transition: background-color 200ms ease, color 200ms ease;
+  }
+
+  ::selection {
+    background-color: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary);
   }
 }
 
-/* Clean, thin scrollbars (macOS native feel) */
+/* ══════════════════════════════════════════
+   SCROLLBAR — hidden globally
+   ══════════════════════════════════════════ */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  display: none;
+}
+* {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
 }
 
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(133, 149, 164, 0.25);
-  border-radius: 99px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(133, 149, 164, 0.45);
-}
-
-.mac-transition {
-  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-/* Crisp pop animation */
-.mac-spring-popup {
-  animation: mac-spring-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes mac-spring-in {
-  0% { transform: scale(0.97) translateY(6px); opacity: 0; }
-  100% { transform: scale(1) translateY(0); opacity: 1; }
-}
-
-/* Base Card Utility - Meta's generous rounding */
-.mac-tahoe-card {
-  background-color: var(--mac-panel);
-  border-radius: 16px; /* Meta standard xl rounding */
-  border: 1px solid var(--mac-surface);
-  box-shadow: var(--mac-shadow);
-}
-
-/* Standard Dimmed Backdrop for Modals */
-.mac-backdrop {
-  background-color: rgba(10, 19, 23, 0.4); 
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  transition: background-color 0.2s ease, backdrop-filter 0.2s ease;
-}
-
-.dark .mac-backdrop {
-  background-color: rgba(5, 8, 10, 0.7);
-}
-
-/* Hide spinners globally for a cleaner macOS aesthetic */
+/* ══════════════════════════════════════════
+   HIDE NUMBER SPINNERS
+   ══════════════════════════════════════════ */
 input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+input[type=number] { -moz-appearance: textfield; }
+
+/* ══════════════════════════════════════════
+   M3 TYPOGRAPHY SCALE
+   ══════════════════════════════════════════ */
+.md-display-small   { font-family: "Google Sans Display", sans-serif; font-size: 36px; font-weight: 400; line-height: 44px; letter-spacing: 0; }
+.md-headline-large  { font-family: "Google Sans", sans-serif; font-size: 32px; font-weight: 400; line-height: 40px; letter-spacing: 0; }
+.md-headline-medium { font-family: "Google Sans", sans-serif; font-size: 28px; font-weight: 400; line-height: 36px; letter-spacing: 0; }
+.md-headline-small  { font-family: "Google Sans", sans-serif; font-size: 24px; font-weight: 400; line-height: 32px; letter-spacing: 0; }
+.md-title-large     { font-family: "Google Sans", sans-serif; font-size: 22px; font-weight: 400; line-height: 28px; letter-spacing: 0; }
+.md-title-medium    { font-family: "Google Sans", sans-serif; font-size: 16px; font-weight: 500; line-height: 24px; letter-spacing: .15px; }
+.md-title-small     { font-family: "Google Sans", sans-serif; font-size: 14px; font-weight: 500; line-height: 20px; letter-spacing: .1px; }
+.md-label-large     { font-family: "Google Sans", sans-serif; font-size: 14px; font-weight: 500; line-height: 20px; letter-spacing: .1px; }
+.md-label-medium    { font-family: "Google Sans", sans-serif; font-size: 12px; font-weight: 500; line-height: 16px; letter-spacing: .5px; }
+.md-label-small     { font-family: "Google Sans", sans-serif; font-size: 11px; font-weight: 500; line-height: 16px; letter-spacing: .5px; }
+.md-body-large      { font-size: 16px; font-weight: 400; line-height: 24px; letter-spacing: .5px; }
+.md-body-medium     { font-size: 14px; font-weight: 400; line-height: 20px; letter-spacing: .25px; }
+.md-body-small      { font-size: 12px; font-weight: 400; line-height: 16px; letter-spacing: .4px; }
+
+/* ══════════════════════════════════════════
+   M3 MOTION SYSTEM
+   Google's Signature Easing Curves
+   ══════════════════════════════════════════ */
+:root {
+  /* M3 Easing — CORRECTED, less bouncy */
+  --md-easing-standard:           cubic-bezier(0.2, 0, 0, 1);
+  --md-easing-standard-decelerate: cubic-bezier(0, 0, 0, 1);
+  --md-easing-standard-accelerate: cubic-bezier(0.3, 0, 1, 1);
+  --md-easing-emphasized:         cubic-bezier(0.2, 0, 0, 1);
+  --md-easing-emphasized-decelerate: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --md-easing-emphasized-accelerate: cubic-bezier(0.3, 0, 0.8, 0.15);
+
+  /* M3 Durations */
+  --md-duration-short1:  50ms;
+  --md-duration-short2:  100ms;
+  --md-duration-short3:  150ms;
+  --md-duration-short4:  200ms;
+  --md-duration-medium1: 250ms;
+  --md-duration-medium2: 300ms;
+  --md-duration-medium3: 350ms;
+  --md-duration-medium4: 400ms;
+  --md-duration-long1:   450ms;
+  --md-duration-long2:   500ms;
 }
 
-input[type=number] {
-  -moz-appearance: textfield;
+/* Standard transitions */
+.md-transition-short  { transition: all var(--md-duration-short3) var(--md-easing-standard); }
+.md-transition-medium { transition: all var(--md-duration-medium2) var(--md-easing-standard); }
+.mac-transition       { transition: all var(--md-duration-short3) var(--md-easing-standard); }
+
+/* ══════════════════════════════════════════
+   M3 DIALOG / MODAL ANIMATIONS
+   FIXED: Less bouncy, cleaner motion.
+   Enter: scale(0.92)→1 + fade (standard-decelerate, NOT emphasized-decelerate)
+   Exit:  scale(1)→0.95 + fade out (standard-accelerate)
+   ══════════════════════════════════════════ */
+@keyframes md-dialog-enter {
+  0%   { opacity: 0; transform: scale(0.92); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes md-dialog-exit {
+  0%   { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.95); }
+}
+@keyframes md-backdrop-in {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+@keyframes md-backdrop-out {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes md-snackbar-in {
+  0%   { opacity: 0; transform: translateY(12px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes md-menu-in {
+  0%   { opacity: 0; transform: scaleY(0.92); }
+  100% { opacity: 1; transform: scaleY(1); }
+}
+
+/* Utility classes for dialog animation */
+.md-dialog-enter {
+  animation: md-dialog-enter 250ms var(--md-easing-standard-decelerate) forwards;
+}
+.md-dialog-exit {
+  animation: md-dialog-exit 200ms var(--md-easing-standard-accelerate) forwards;
+}
+.md-backdrop-enter {
+  animation: md-backdrop-in 200ms var(--md-easing-standard) forwards;
+}
+.md-backdrop-exit {
+  animation: md-backdrop-out 150ms var(--md-easing-standard-accelerate) forwards;
+}
+.md-snackbar-enter {
+  animation: md-snackbar-in 250ms var(--md-easing-standard-decelerate) forwards;
+}
+
+/* ══════════════════════════════════════════
+   M3 SURFACE & ELEVATION
+   ══════════════════════════════════════════ */
+.md-surface {
+  background-color: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+}
+.md-surface-container {
+  background-color: var(--md-sys-color-surface-container);
+}
+.md-elevation-1 { box-shadow: var(--md-elevation-1); }
+.md-elevation-2 { box-shadow: var(--md-elevation-2); }
+.md-elevation-3 { box-shadow: var(--md-elevation-3); }
+
+/* ══════════════════════════════════════════
+   M3 STATE LAYER (hover/focus/pressed)
+   ══════════════════════════════════════════ */
+.md-state-layer {
+  position: relative;
+  overflow: hidden;
+}
+.md-state-layer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: currentColor;
+  opacity: 0;
+  border-radius: inherit;
+  transition: opacity var(--md-duration-short3) var(--md-easing-standard);
+  pointer-events: none;
+}
+.md-state-layer:hover::before   { opacity: 0.08; }
+.md-state-layer:focus::before   { opacity: 0.12; }
+.md-state-layer:active::before  { opacity: 0.16; }
+
+/* ══════════════════════════════════════════
+   M3 BUTTONS
+   ══════════════════════════════════════════ */
+
+/* Filled Button */
+.gai-btn-filled {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 24px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  border: none;
+  cursor: pointer;
+  font-family: "Google Sans", sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: .1px;
+  background-color: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  position: relative;
+  overflow: hidden;
+  transition:
+    background-color 150ms var(--md-easing-standard),
+    box-shadow 150ms var(--md-easing-standard);
+}
+.gai-btn-filled::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--md-sys-color-on-primary);
+  opacity: 0;
+  transition: opacity 100ms var(--md-easing-standard);
+}
+.gai-btn-filled:hover::before   { opacity: 0.08; }
+.gai-btn-filled:hover           { box-shadow: var(--md-elevation-1); }
+.gai-btn-filled:focus-visible   { outline: 2px solid var(--md-sys-color-primary); outline-offset: 2px; }
+.gai-btn-filled:active::before  { opacity: 0.12; }
+
+/* Tonal Button */
+.gai-btn-tonal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 24px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  border: none;
+  cursor: pointer;
+  font-family: "Google Sans", sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: .1px;
+  background-color: var(--md-sys-color-secondary-container, var(--md-sys-color-surface-variant));
+  color: var(--md-sys-color-on-secondary-container, var(--md-sys-color-primary));
+  position: relative;
+  overflow: hidden;
+  transition:
+    background-color 150ms var(--md-easing-standard),
+    box-shadow 150ms var(--md-easing-standard);
+}
+.gai-btn-tonal::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity 100ms var(--md-easing-standard);
+}
+.gai-btn-tonal:hover::before  { opacity: 0.08; }
+.gai-btn-tonal:hover          { box-shadow: var(--md-elevation-1); }
+.gai-btn-tonal:active::before { opacity: 0.12; }
+
+/* Outlined Button */
+.gai-btn-outlined {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 23px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--md-sys-color-outline);
+  cursor: pointer;
+  font-family: "Google Sans", sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: .1px;
+  background-color: transparent;
+  color: var(--md-sys-color-primary);
+  position: relative;
+  overflow: hidden;
+  transition:
+    background-color 150ms var(--md-easing-standard),
+    border-color 150ms var(--md-easing-standard);
+}
+.gai-btn-outlined::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--md-sys-color-primary);
+  opacity: 0;
+  transition: opacity 100ms var(--md-easing-standard);
+}
+.gai-btn-outlined:hover::before  { opacity: 0.08; }
+.gai-btn-outlined:active::before { opacity: 0.12; }
+
+/* Text Button */
+.gai-btn-text {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 12px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  border: none;
+  cursor: pointer;
+  font-family: "Google Sans", sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: .1px;
+  background-color: transparent;
+  color: var(--md-sys-color-primary);
+  position: relative;
+  overflow: hidden;
+  transition: background-color 100ms var(--md-easing-standard);
+}
+.gai-btn-text:hover { background-color: color-mix(in srgb, var(--md-sys-color-primary) 8%, transparent); }
+.gai-btn-text:active { background-color: color-mix(in srgb, var(--md-sys-color-primary) 12%, transparent); }
+
+/* Icon Button (standard 40px) */
+.md-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  color: var(--md-sys-color-on-surface-variant);
+  position: relative;
+  overflow: hidden;
+  transition:
+    background-color 100ms var(--md-easing-standard),
+    color 100ms var(--md-easing-standard);
+}
+.md-icon-btn:hover   { background-color: var(--md-sys-color-surface-variant); color: var(--md-sys-color-on-surface); }
+.md-icon-btn:active  { background-color: var(--md-sys-color-surface-container-high); }
+
+/* Small Icon Button (28px) */
+.md-icon-btn-sm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  color: var(--md-sys-color-on-surface-variant);
+  transition:
+    background-color 100ms var(--md-easing-standard),
+    color 100ms var(--md-easing-standard);
+}
+.md-icon-btn-sm:hover  { background-color: var(--md-sys-color-surface-variant); color: var(--md-sys-color-on-surface); }
+.md-icon-btn-sm:active { background-color: var(--md-sys-color-surface-container-high); }
+
+/* ══════════════════════════════════════════
+   M3 TEXT FIELDS — FIXED: radius now 12px
+   (matches card radius for consistency)
+   ══════════════════════════════════════════ */
+
+/* Outlined text field */
+.gai-input {
+  display: block;
+  width: 100%;
+  padding: 10px 16px;
+  background-color: transparent;
+  color: var(--md-sys-color-on-surface);
+  font-family: "Google Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--radius-md);  /* 12px — consistent with cards */
+  outline: none;
+  transition: border-color 150ms var(--md-easing-standard);
+}
+.gai-input:hover {
+  border-color: var(--md-sys-color-on-surface);
+}
+.gai-input:focus {
+  border-color: var(--md-sys-color-primary);
+  border-width: 2px;
+  padding: 9px 15px; /* compensate for extra border width */
+}
+.gai-input::placeholder {
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+/* ══════════════════════════════════════════
+   M3 CARD
+   ══════════════════════════════════════════ */
+.md-card {
+  background-color: var(--md-sys-color-surface);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--radius-lg);
+  position: relative;
+  overflow: hidden;
+}
+.md-card-outlined {
+  background-color: var(--md-sys-color-surface);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--radius-lg);
+}
+
+/* ══════════════════════════════════════════
+   MODAL / DIALOG BACKDROP
+   ══════════════════════════════════════════ */
+.mac-backdrop {
+  background-color: rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+/* ══════════════════════════════════════════
+   M3 NAVIGATION RAIL (Sidebar)
+   ══════════════════════════════════════════ */
+.md-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  color: var(--md-sys-color-on-surface-variant);
+  font-family: "Google Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  transition:
+    background-color 100ms var(--md-easing-standard),
+    color 100ms var(--md-easing-standard);
+}
+.md-nav-item:hover {
+  background-color: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface);
+}
+.md-nav-item.active {
+  background-color: var(--md-sys-color-secondary-container, var(--md-sys-color-surface-variant));
+  color: var(--md-sys-color-on-secondary-container, var(--md-sys-color-primary));
+  font-weight: 600;
+}
+
+/* ══════════════════════════════════════════
+   M3 CHIP
+   ══════════════════════════════════════════ */
+.md-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--md-sys-color-outline);
+  background-color: transparent;
+  color: var(--md-sys-color-on-surface-variant);
+  font-family: "Google Sans", sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background-color 100ms var(--md-easing-standard),
+    border-color 100ms var(--md-easing-standard),
+    color 100ms var(--md-easing-standard);
+}
+.md-chip:hover { background-color: var(--md-sys-color-surface-container-high); }
+.md-chip.active {
+  background-color: var(--md-sys-color-secondary-container, var(--md-sys-color-surface-variant));
+  border-color: transparent;
+  color: var(--md-sys-color-on-secondary-container, var(--md-sys-color-primary));
+}
+
+/* ══════════════════════════════════════════
+   M3 DIVIDER
+   ══════════════════════════════════════════ */
+.md-divider {
+  height: 1px;
+  background-color: var(--md-sys-color-outline-variant);
+}
+
+/* ══════════════════════════════════════════
+   STAT CARD component class
+   Single source of truth for dashboard cards
+   ══════════════════════════════════════════ */
+.stat-card {
+  background-color: var(--md-sys-color-surface);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  min-width: 0;
+  transition:
+    border-color 150ms var(--md-easing-standard),
+    box-shadow 150ms var(--md-easing-standard);
+}
+.stat-card:hover {
+  border-color: var(--md-sys-color-primary);
+  box-shadow: var(--md-elevation-1);
+}
+.stat-card:active {
+  box-shadow: none;
+}
+
+.stat-card .stat-label {
+  font-family: "Google Sans", sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+.stat-card .stat-value {
+  font-family: "Google Sans", sans-serif;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+  letter-spacing: -0.5px;
+}
+
+/* Legacy gai-card */
+.gai-card {
+  background-color: var(--md-sys-color-surface);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--radius-lg);
+  padding: 20px;
 }
