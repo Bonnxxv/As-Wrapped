@@ -132,9 +132,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 }) => {
   // Expanded states
   const [expandedChart, setExpandedChart] = React.useState<'monthly-combined' | 'monthly-platform' | 'daily' | 'cycle' | null>(null);
-  const [summaryPeriod, setSummaryPeriod] = React.useState<'month' | 'year'>('month');
+  const [summaryPeriod, setSummaryPeriod] = React.useState<'month' | 'quarter' | 'year'>('month');
+  const [selectedQuarter, setSelectedQuarter] = React.useState<1 | 2 | 3 | 4>(1);
   const [expandedCard, setExpandedCard] = React.useState<{
-    period: 'year' | 'month';
+    period: 'year' | 'month' | 'quarter';
     metric: 'views' | 'uploads' | 'engagement' | 'fyp';
   } | null>(null);
   const [selectedCycleWeek, setSelectedCycleWeek] = React.useState<number>(0);
@@ -199,6 +200,36 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   const yearViewsGrowth = prevYearTotalViews > 0 ? ((yearTotalViews - prevYearTotalViews) / prevYearTotalViews) * 100 : 0;
   const yearLikesGrowth = prevYearTotalLikes > 0 ? ((yearTotalLikes - prevYearTotalLikes) / prevYearTotalLikes) * 100 : 0;
+
+  // QUARTER CALCULATIONS
+  const QUARTER_MONTHS: Record<1 | 2 | 3 | 4, number[]> = {
+    1: [0, 1, 2],   // Jan–Mar
+    2: [3, 4, 5],   // Apr–Jun
+    3: [6, 7, 8],   // Jul–Sep
+    4: [9, 10, 11], // Oct–Dec
+  };
+  const quarterMonths = QUARTER_MONTHS[selectedQuarter];
+  const quarterContents: ContentEntry[] = quarterMonths.flatMap(m => folders[selectedYear]?.[m] || []);
+  const prevQuarterKey = selectedQuarter === 1 ? 4 : (selectedQuarter - 1) as 1 | 2 | 3 | 4;
+  const prevQuarterYear = selectedQuarter === 1 ? selectedYear - 1 : selectedYear;
+  const prevQuarterContents: ContentEntry[] = QUARTER_MONTHS[prevQuarterKey].flatMap(m => folders[prevQuarterYear]?.[m] || []);
+
+  const quarterTotalViews    = quarterContents.reduce((s, i) => s + getMetrics(i).views, 0);
+  const quarterTotalLikes    = quarterContents.reduce((s, i) => s + getMetrics(i).likes, 0);
+  const quarterTotalComments = quarterContents.reduce((s, i) => s + getMetrics(i).comments, 0);
+  const quarterTotalUploads  = quarterContents.length;
+  const quarterFypCount      = quarterContents.filter(i => getMetrics(i).views > 20000).length;
+  const quarterIgViews       = quarterContents.reduce((s, i) => s + i.instagram.views, 0);
+  const quarterTtViews       = quarterContents.reduce((s, i) => s + i.tiktok.views, 0);
+  const quarterTotalViewsCalc = quarterIgViews + quarterTtViews;
+  const quarterIgPct = quarterTotalViewsCalc > 0 ? Math.round((quarterIgViews / quarterTotalViewsCalc) * 100) : 0;
+  const quarterTtPct = quarterTotalViewsCalc > 0 ? (100 - quarterIgPct) : 0;
+
+  const prevQTotalViews = prevQuarterContents.reduce((s, i) => s + getMetrics(i).views, 0);
+  const prevQTotalLikes = prevQuarterContents.reduce((s, i) => s + getMetrics(i).likes, 0);
+  const quarterViewsGrowth = prevQTotalViews > 0 ? ((quarterTotalViews - prevQTotalViews) / prevQTotalViews) * 100 : 0;
+  const quarterLikesGrowth = prevQTotalLikes > 0 ? ((quarterTotalLikes - prevQTotalLikes) / prevQTotalLikes) * 100 : 0;
+
 
   let currentFollowers = 0;
   if (activeView === 'instagram') {
@@ -647,6 +678,165 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     );
   };
 
+  const renderQuarterSummaryCards = (isDashboard: boolean) => {
+    const { iconBg, hoverBorder } = getThemeClasses();
+    const qLabel = `Q${selectedQuarter} ${selectedYear}`;
+
+    if (isDashboard) {
+      return (
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 w-full">
+          {/* Views */}
+          <div onClick={() => setExpandedCard({ period: 'quarter', metric: 'views' })} className={`stat-card p-5 flex flex-col justify-between gap-3 w-full group ${hoverBorder}`}>
+            <div className="flex items-center gap-3 z-10 min-w-0 w-full">
+              <div className={`p-2 rounded-full ${iconBg} shrink-0`}><Eye size={16} /></div>
+              <div className="flex flex-col min-w-0">
+                <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Views</span>
+                <div className="flex items-baseline gap-1.5 mt-0.5 flex-wrap">
+                  <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">{fmt(quarterTotalViews)}</span>
+                  {quarterViewsGrowth !== 0 && (
+                    <span className={`text-[12px] font-bold flex items-center gap-0.5 shrink-0 ${quarterViewsGrowth >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                      {quarterViewsGrowth >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                      {quarterViewsGrowth > 0 ? '+' : ''}{quarterViewsGrowth.toFixed(0)}%
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-col gap-1 w-full border-t border-[color:var(--md-sys-color-outline-variant)] pt-2 z-10">
+              <div className="flex justify-between text-[12px] font-bold uppercase tracking-wider text-[color:var(--md-sys-color-on-surface-variant)]">
+                <span>IG: {fmt(quarterIgViews)} ({quarterIgPct}%)</span>
+                <span>TT: {fmt(quarterTtViews)} ({quarterTtPct}%)</span>
+              </div>
+              <div className="h-1.5 w-full bg-[color:var(--md-sys-color-surface-variant)] rounded-full overflow-hidden flex">
+                <div style={{ width: `${quarterIgPct}%` }} className="h-full bg-[#ea4335]" />
+                <div style={{ width: `${quarterTtPct}%` }} className="h-full bg-[#00acc1]" />
+              </div>
+            </div>
+          </div>
+
+          {/* Uploads */}
+          <div onClick={() => setExpandedCard({ period: 'quarter', metric: 'uploads' })} className={`stat-card p-5 items-center flex gap-3 w-full group ${hoverBorder}`}>
+            <div className={`p-2 rounded-full ${iconBg} shrink-0 z-10`}><Video size={16} /></div>
+            <div className="flex flex-col z-10">
+              <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Uploads</span>
+              <div className="flex items-baseline gap-2 mt-0.5">
+                <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">{quarterTotalUploads}</span>
+                <span className="text-[12px] font-medium text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Videos</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Engagement */}
+          <div onClick={() => setExpandedCard({ period: 'quarter', metric: 'engagement' })} className={`stat-card p-5 items-center flex gap-3 w-full group ${hoverBorder}`}>
+            <div className={`p-2 rounded-full ${iconBg} shrink-0 z-10`}><Zap size={16} /></div>
+            <div className="flex flex-col z-10">
+              <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Engagement</span>
+              <div className="flex items-baseline gap-2 mt-0.5">
+                <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">
+                  {quarterTotalViews > 0 ? ((quarterTotalLikes + quarterTotalComments) / quarterTotalViews * 100).toFixed(2) : '0.00'}%
+                </span>
+                <span className="text-[12px] font-medium text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Avg</span>
+              </div>
+            </div>
+          </div>
+
+          {/* FYP Hits */}
+          <div onClick={() => setExpandedCard({ period: 'quarter', metric: 'fyp' })} className={`stat-card p-5 items-center flex gap-3 w-full group ${hoverBorder}`}>
+            <div className={`p-2 rounded-full ${iconBg} shrink-0 z-10`}><Sparkles size={16} /></div>
+            <div className="flex flex-col z-10">
+              <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">FYP Hits</span>
+              <div className="flex items-baseline gap-2 mt-0.5">
+                <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">{quarterFypCount}</span>
+                <span className="text-[12px] font-medium text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">&gt; 20K Views</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Individual platform vertical cards
+    return (
+      <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 w-full">
+        {/* Views */}
+        <div onClick={() => setExpandedCard({ period: 'quarter', metric: 'views' })} className={`stat-card p-5 flex flex-col justify-between gap-3 ${hoverBorder}`}>
+          <div className="flex items-center justify-between z-10 gap-2">
+            <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Views</span>
+            <div className={`p-1.5 rounded-full ${iconBg} shrink-0`}><Eye size={14} /></div>
+          </div>
+          <div className="flex flex-col gap-1 z-10">
+            <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">{fmt(quarterTotalViews)}</span>
+            {quarterViewsGrowth !== 0 ? (
+              <span className={`text-[12px] font-bold flex items-center gap-1 shrink-0 font-sans ${quarterViewsGrowth >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                {quarterViewsGrowth >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                {quarterViewsGrowth > 0 ? '+' : ''}{quarterViewsGrowth.toFixed(0)}% vs prev Q
+              </span>
+            ) : (
+              <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] invisible font-sans">—</span>
+            )}
+          </div>
+        </div>
+
+        {/* Likes */}
+        <div onClick={() => setExpandedCard({ period: 'quarter', metric: 'fyp' })} className={`stat-card p-5 flex flex-col justify-between gap-3 group ${hoverBorder}`}>
+          <div className="flex items-center justify-between z-10 gap-2">
+            <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Likes</span>
+            <div className={`p-1.5 rounded-full ${iconBg} shrink-0`}><Heart size={14} /></div>
+          </div>
+          <div className="flex flex-col gap-1 z-10">
+            <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">{fmt(quarterTotalLikes)}</span>
+            {quarterLikesGrowth !== 0 ? (
+              <span className={`text-[12px] font-bold flex items-center gap-1 shrink-0 font-sans ${quarterLikesGrowth >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                {quarterLikesGrowth >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                {quarterLikesGrowth > 0 ? '+' : ''}{quarterLikesGrowth.toFixed(0)}% vs prev Q
+              </span>
+            ) : (
+              <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] invisible font-sans">—</span>
+            )}
+          </div>
+        </div>
+
+        {/* Uploads */}
+        <div onClick={() => setExpandedCard({ period: 'quarter', metric: 'uploads' })} className={`stat-card p-5 flex flex-col justify-between gap-3 ${hoverBorder}`}>
+          <div className="flex items-center justify-between z-10 gap-2">
+            <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Uploads</span>
+            <div className={`p-1.5 rounded-full ${iconBg} shrink-0`}><Video size={14} /></div>
+          </div>
+          <div className="flex flex-col gap-1 z-10">
+            <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">{quarterTotalUploads}</span>
+            <span className="text-[12px] font-medium text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Videos</span>
+          </div>
+        </div>
+
+        {/* Engagement */}
+        <div onClick={() => setExpandedCard({ period: 'quarter', metric: 'engagement' })} className={`stat-card p-5 flex flex-col justify-between gap-3 ${hoverBorder}`}>
+          <div className="flex items-center justify-between z-10 gap-2">
+            <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Engagement</span>
+            <div className={`p-1.5 rounded-full ${iconBg} shrink-0`}><Zap size={14} /></div>
+          </div>
+          <div className="flex flex-col gap-1 z-10">
+            <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">
+              {quarterTotalViews > 0 ? ((quarterTotalLikes + quarterTotalComments) / quarterTotalViews * 100).toFixed(2) : '0.00'}%
+            </span>
+            <span className="text-[12px] font-medium text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Avg</span>
+          </div>
+        </div>
+
+        {/* FYP Hits */}
+        <div onClick={() => setExpandedCard({ period: 'quarter', metric: 'fyp' })} className="stat-card p-5 flex flex-col justify-between gap-3 group">
+          <div className="flex items-center justify-between z-10 gap-2">
+            <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">FYP Hits</span>
+            <div className="p-1.5 rounded-full bg-[#f2a918]/10 text-[#f2a918] shrink-0"><Sparkles size={14} /></div>
+          </div>
+          <div className="flex flex-col gap-1 z-10">
+            <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">{quarterFypCount}</span>
+            <span className="text-[12px] font-medium text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">&gt; 20K Views</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderMonthSummaryCards = (isDashboard: boolean) => {
     const { iconBg, hoverBorder } = getThemeClasses();
 
@@ -987,7 +1177,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     let contentNode: React.ReactNode = null;
 
     const isYear = period === 'year';
-    const activeLabel = isYear ? `${selectedYear}` : `${MONTH_NAMES[selectedMonth]} ${selectedYear}`;
+    const isQuarter = period === 'quarter';
+    const activeLabel = isYear
+      ? `${selectedYear}`
+      : isQuarter
+      ? `Q${selectedQuarter} ${selectedYear}`
+      : `${MONTH_NAMES[selectedMonth]} ${selectedYear}`;
 
     // Helper to calculate content entry engagement rate
     const getEngagementRate = (item: ContentEntry) => {
@@ -997,7 +1192,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     };
 
     if (metric === 'views') {
-      title = `Detail Views - ${isYear ? 'Tahunan' : 'Bulanan'} (${activeLabel})`;
+      title = `Detail Views - ${isYear ? 'Tahunan' : isQuarter ? 'Kuartalan' : 'Bulanan'} (${activeLabel})`;
       description = `Rincian statistik tayangan konten Anda pada periode ${activeLabel}.`;
 
       if (isYear) {
@@ -1074,6 +1269,59 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                               style={{ width: `${percent}%` }} 
                             />
                           )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        );
+      } else if (isQuarter) {
+        const qViewsStats = quarterMonths.map(mIdx => {
+          const mContents = folders[selectedYear]?.[mIdx] || [];
+          const ig = mContents.reduce((sum: number, item: ContentEntry) => sum + item.instagram.views, 0);
+          const tt = mContents.reduce((sum: number, item: ContentEntry) => sum + item.tiktok.views, 0);
+          const total = activeView === 'instagram' ? ig : activeView === 'tiktok' ? tt : (ig + tt);
+          return { mIdx, name: MONTH_NAMES[mIdx], ig, tt, total };
+        });
+        const qViewsBest = [...qViewsStats].sort((a, b) => b.total - a.total)[0];
+        const qViewsMax = qViewsStats.length > 0 ? Math.max(...qViewsStats.map(r => r.total)) : 1;
+        contentNode = (
+          <div className="flex flex-col gap-4">
+            {qViewsBest && qViewsBest.total > 0 && (
+              <div className="flex items-center gap-3 p-4 bg-[color:var(--md-sys-color-primary-container)]/30 border border-[color:var(--md-sys-color-primary-container)]/50 rounded-2xl">
+                <Crown size={16} className="text-[color:var(--md-sys-color-primary)] shrink-0" />
+                <span className="text-xs font-medium text-[color:var(--md-sys-color-on-surface)]">
+                  Bulan terbaik di kuartal ini adalah <strong className="text-[color:var(--md-sys-color-primary)] font-semibold">{qViewsBest.name}</strong> dengan total <strong className="text-[color:var(--md-sys-color-primary)] font-semibold">{fmtFull(qViewsBest.total)}</strong> tayangan.
+                </span>
+              </div>
+            )}
+            <div className="flex flex-col gap-2.5">
+              <div className="flex items-center justify-between text-[12px] uppercase tracking-wider text-[color:var(--md-sys-color-on-surface-variant)] font-bold px-4 pb-1 border-b border-[color:var(--md-sys-color-outline-variant)]/30">
+                <span>Bulan</span>
+                <span>Views / Distribusi</span>
+              </div>
+              <div className="flex flex-col gap-2 max-h-[350px] overflow-y-auto pr-1">
+                {qViewsStats.map((row) => {
+                  const percent = qViewsMax > 0 ? (row.total / qViewsMax) * 100 : 0;
+                  const totalSum = (row.ig + row.tt) || 1;
+                  const igPercent = (row.ig / totalSum) * 100;
+                  const ttPercent = (row.tt / totalSum) * 100;
+                  return (
+                    <div key={row.mIdx} className="flex items-center justify-between p-4 bg-[color:var(--md-sys-color-surface-container-low)] hover:bg-[color:var(--md-sys-color-surface-container-high)] rounded-2xl transition-colors duration-150 border border-[color:var(--md-sys-color-outline-variant)]/30">
+                      <div className="flex flex-col min-w-0">
+                        <span className="font-semibold text-sm text-[color:var(--md-sys-color-on-surface)]">{row.name}</span>
+                        <div className="flex items-center gap-3 text-[12px] text-[color:var(--md-sys-color-on-surface-variant)] mt-0.5">
+                          {activeView !== 'tiktok' && (<span className="flex items-center gap-1"><InstagramIcon size={14} className="text-red-500" /><strong className="font-mono font-medium">{fmtFull(row.ig)}</strong></span>)}
+                          {activeView !== 'instagram' && (<span className="flex items-center gap-1"><TikTokIcon size={14} className="text-[#00acc1]" /><strong className="font-mono font-medium">{fmtFull(row.tt)}</strong></span>)}
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end shrink-0 pl-4">
+                        <span className="font-bold text-sm text-[color:var(--md-sys-color-on-surface)] font-mono">{fmtFull(row.total)}</span>
+                        <div className="w-24 h-1.5 bg-[color:var(--md-sys-color-surface-container-highest)] rounded-full overflow-hidden mt-1.5 flex">
+                          {activeView === 'dashboard' ? (row.total > 0 ? (<><div className="h-full bg-red-500" style={{ width: `${igPercent}%` }} /><div className="h-full bg-[#00acc1]" style={{ width: `${ttPercent}%` }} /></>) : (<div className="h-full bg-[color:var(--md-sys-color-surface-container-highest)] w-full" />)) : (<div className={`h-full ${activeView === 'instagram' ? 'bg-red-500' : 'bg-[#00acc1]'}`} style={{ width: `${percent}%` }} />)}
                         </div>
                       </div>
                     </div>
@@ -1166,7 +1414,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         );
       }
     } else if (metric === 'uploads') {
-      title = `Detail Unggahan - ${isYear ? 'Tahunan' : 'Bulanan'} (${activeLabel})`;
+      title = `Detail Unggahan - ${isYear ? 'Tahunan' : isQuarter ? 'Kuartalan' : 'Bulanan'} (${activeLabel})`;
       description = `Informasi kuantitas video yang dipublikasikan pada periode ${activeLabel}.`;
 
       if (isYear) {
@@ -1209,6 +1457,47 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                             className="h-full bg-[color:var(--md-sys-color-secondary)]" 
                             style={{ width: `${percent}%` }} 
                           />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        );
+      } else if (isQuarter) {
+        const qUploadStats = quarterMonths.map(mIdx => {
+          const mContents = folders[selectedYear]?.[mIdx] || [];
+          return { mIdx, name: MONTH_NAMES[mIdx], count: mContents.length };
+        });
+        const qUploadBest = [...qUploadStats].sort((a, b) => b.count - a.count)[0];
+        const qUploadMax = qUploadStats.length > 0 ? Math.max(...qUploadStats.map(r => r.count)) : 1;
+        contentNode = (
+          <div className="flex flex-col gap-4">
+            {qUploadBest && qUploadBest.count > 0 && (
+              <div className="flex items-center gap-3 p-4 bg-[color:var(--md-sys-color-secondary-container)]/30 border border-[color:var(--md-sys-color-secondary-container)]/50 rounded-2xl">
+                <Video size={16} className="text-[color:var(--md-sys-color-secondary)] shrink-0" />
+                <span className="text-xs font-medium text-[color:var(--md-sys-color-on-surface)]">
+                  Bulan paling produktif di kuartal ini adalah <strong className="text-[color:var(--md-sys-color-secondary)] font-semibold">{qUploadBest.name}</strong> dengan memposting <strong className="text-[color:var(--md-sys-color-secondary)] font-semibold">{qUploadBest.count}</strong> video.
+                </span>
+              </div>
+            )}
+            <div className="flex flex-col gap-2.5">
+              <div className="flex items-center justify-between text-[12px] uppercase tracking-wider text-[color:var(--md-sys-color-on-surface-variant)] font-bold px-4 pb-1 border-b border-[color:var(--md-sys-color-outline-variant)]/30">
+                <span>Bulan</span>
+                <span>Jumlah Unggahan</span>
+              </div>
+              <div className="flex flex-col gap-2 max-h-[350px] overflow-y-auto pr-1">
+                {qUploadStats.map((row) => {
+                  const percent = qUploadMax > 0 ? (row.count / qUploadMax) * 100 : 0;
+                  return (
+                    <div key={row.mIdx} className="flex items-center justify-between p-4 bg-[color:var(--md-sys-color-surface-container-low)] hover:bg-[color:var(--md-sys-color-surface-container-high)] rounded-2xl transition-colors duration-150 border border-[color:var(--md-sys-color-outline-variant)]/30">
+                      <span className="font-semibold text-sm text-[color:var(--md-sys-color-on-surface)]">{row.name}</span>
+                      <div className="flex flex-col items-end shrink-0 pl-4">
+                        <span className="font-bold text-sm text-[color:var(--md-sys-color-secondary)] font-mono">{row.count} video</span>
+                        <div className="w-24 h-1.5 bg-[color:var(--md-sys-color-surface-container-highest)] rounded-full overflow-hidden mt-1.5">
+                          <div className="h-full bg-[color:var(--md-sys-color-secondary)]" style={{ width: `${percent}%` }} />
                         </div>
                       </div>
                     </div>
@@ -1276,7 +1565,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         );
       }
     } else if (metric === 'engagement') {
-      title = `Detail Interaksi - ${isYear ? 'Tahunan' : 'Bulanan'} (${activeLabel})`;
+      title = `Detail Interaksi - ${isYear ? 'Tahunan' : isQuarter ? 'Kuartalan' : 'Bulanan'} (${activeLabel})`;
       description = `Analisis rasio keterlibatan pemirsa (Likes + Comments + Saves + Shares)/Views pada periode ${activeLabel}.`;
 
       if (isYear) {
@@ -1330,6 +1619,56 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                             className="h-full bg-teal-500" 
                             style={{ width: `${percent}%` }} 
                           />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        );
+      } else if (isQuarter) {
+        const qEngStats = quarterMonths.map(mIdx => {
+          const mContents = folders[selectedYear]?.[mIdx] || [];
+          const totalViews = mContents.reduce((sum: number, item: ContentEntry) => sum + getMetrics(item).views, 0);
+          const totalEngagement = mContents.reduce((sum: number, item: ContentEntry) => {
+            const m = getMetrics(item);
+            return sum + (m.likes + m.comments + m.saves + m.shares);
+          }, 0);
+          const rate = totalViews > 0 ? (totalEngagement / totalViews) * 100 : 0;
+          return { mIdx, name: MONTH_NAMES[mIdx], totalViews, rate };
+        });
+        const qEngBest = [...qEngStats].sort((a, b) => b.rate - a.rate)[0];
+        const qEngMax = qEngStats.length > 0 ? Math.max(...qEngStats.map(r => r.rate)) : 1;
+        contentNode = (
+          <div className="flex flex-col gap-4">
+            {qEngBest && qEngBest.rate > 0 && (
+              <div className="flex items-center gap-3 p-4 bg-teal-500/5 border border-teal-500/10 rounded-2xl">
+                <Zap size={16} className="text-teal-500 shrink-0" />
+                <span className="text-xs font-medium text-[color:var(--md-sys-color-on-surface)]">
+                  Interaksi tertinggi di kuartal ini dicapai pada bulan <strong className="text-teal-500 font-semibold">{qEngBest.name}</strong> dengan rasio interaksi rata-rata <strong className="text-teal-500 font-semibold">{qEngBest.rate.toFixed(2)}%</strong>.
+                </span>
+              </div>
+            )}
+            <div className="flex flex-col gap-2.5">
+              <div className="flex items-center justify-between text-[12px] uppercase tracking-wider text-[color:var(--md-sys-color-on-surface-variant)] font-bold px-4 pb-1 border-b border-[color:var(--md-sys-color-outline-variant)]/30">
+                <span>Bulan</span>
+                <span>Engagement Rate (ER)</span>
+              </div>
+              <div className="flex flex-col gap-2 max-h-[350px] overflow-y-auto pr-1">
+                {qEngStats.map((row) => {
+                  const percent = qEngMax > 0 ? (row.rate / qEngMax) * 100 : 0;
+                  return (
+                    <div key={row.mIdx} className="flex items-center justify-between p-4 bg-[color:var(--md-sys-color-surface-container-low)] hover:bg-[color:var(--md-sys-color-surface-container-high)] rounded-2xl transition-colors duration-150 border border-[color:var(--md-sys-color-outline-variant)]/30">
+                      <div className="flex flex-col min-w-0">
+                        <span className="font-semibold text-sm text-[color:var(--md-sys-color-on-surface)]">{row.name}</span>
+                        <span className="text-[12px] text-[color:var(--md-sys-color-on-surface-variant)] mt-0.5">Views: <strong className="font-mono font-medium">{fmtFull(row.totalViews)}</strong></span>
+                      </div>
+                      <div className="flex flex-col items-end shrink-0 pl-4">
+                        <span className="font-bold text-sm text-teal-500 font-mono">{row.rate.toFixed(2)}%</span>
+                        <div className="w-24 h-1.5 bg-[color:var(--md-sys-color-surface-container-highest)] rounded-full overflow-hidden mt-1.5">
+                          <div className="h-full bg-teal-500" style={{ width: `${percent}%` }} />
                         </div>
                       </div>
                     </div>
@@ -1399,13 +1738,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         );
       }
     } else if (metric === 'fyp') {
-      title = `Detail FYP Hits - ${isYear ? 'Tahunan' : 'Bulanan'} (${activeLabel})`;
+      title = `Detail FYP Hits - ${isYear ? 'Tahunan' : isQuarter ? 'Kuartalan' : 'Bulanan'} (${activeLabel})`;
       description = `Daftar unggahan konten berkinerja tinggi yang melampaui ambang batas > 20.000 tayangan.`;
 
       // Gather matching contents
       let fypContents: ContentEntry[] = [];
       if (isYear) {
         fypContents = getYearContents(selectedYear).filter(item => getMetrics(item).views > 20000);
+      } else if (isQuarter) {
+        fypContents = quarterContents.filter(item => getMetrics(item).views > 20000);
       } else {
         fypContents = selectedMonthContents.filter(item => getMetrics(item).views > 20000);
       }
@@ -1425,7 +1766,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           )}
           <div className="flex flex-col gap-2.5">
             <div className="flex items-center justify-between text-[12px] uppercase tracking-wider text-[color:var(--md-sys-color-on-surface-variant)] font-bold px-4 pb-1 border-b border-[color:var(--md-sys-color-outline-variant)]/30">
-              <span>{isYear ? 'Tanggal / Bulan' : 'Konten'}</span>
+              <span>{(isYear || isQuarter) ? 'Tanggal / Bulan' : 'Konten'}</span>
               <span>Views / Distribusi</span>
             </div>
             <div className="flex flex-col gap-2 max-h-[350px] overflow-y-auto pr-1">
@@ -1435,11 +1776,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 fypContents.map((item) => {
                   const m = getMetrics(item);
                   let dateLabel = `${item.day}`;
-                  if (isYear) {
+                  if (isYear || isQuarter) {
                     let itemMonthName = '';
-                    for (let mIdx = 0; mIdx < 12; mIdx++) {
+                    const monthIndices = isYear
+                      ? Array.from({ length: 12 }, (_, i) => i)
+                      : quarterMonths;
+                    for (const mIdx of monthIndices) {
                       const mEntries = folders[selectedYear]?.[mIdx] || [];
-                      if (mEntries.some(e => e.id === item.id)) {
+                      if (mEntries.some((e: ContentEntry) => e.id === item.id)) {
                         itemMonthName = MONTH_NAMES[mIdx].substring(0, 3);
                         break;
                       }
@@ -1598,38 +1942,74 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <h3 className="md-label-large text-[color:var(--md-sys-color-on-surface-variant)] select-none">
               {summaryPeriod === 'month'
                 ? `${MONTH_NAMES[selectedMonth]} ${selectedYear} Performance`
+                : summaryPeriod === 'quarter'
+                ? `Q${selectedQuarter} ${selectedYear} Performance`
                 : `${selectedYear} Annual Performance`
               }
             </h3>
-            {/* Segmented button: Monthly / Annual */}
-            <div className="flex h-11 items-center border border-[color:var(--md-sys-color-outline)] rounded-full p-1 self-start sm:self-auto select-none">
-              <button
-                type="button"
-                onClick={() => setSummaryPeriod('month')}
-                className={`px-4 h-9 flex items-center justify-center text-[13px] font-medium rounded-full transition-colors duration-150 cursor-pointer ${
-                  summaryPeriod === 'month'
-                    ? 'bg-[color:var(--md-sys-color-secondary-container,var(--md-sys-color-surface-variant))] text-[color:var(--md-sys-color-on-secondary-container,var(--md-sys-color-primary))] font-semibold'
-                    : 'text-[color:var(--md-sys-color-on-surface-variant)] hover:bg-[color:var(--md-sys-color-surface-container-high)]'
-                }`}
-              >
-                Monthly
-              </button>
-              <button
-                type="button"
-                onClick={() => setSummaryPeriod('year')}
-                className={`px-4 h-9 flex items-center justify-center text-[13px] font-medium rounded-full transition-colors duration-150 cursor-pointer ${
-                  summaryPeriod === 'year'
-                    ? 'bg-[color:var(--md-sys-color-secondary-container,var(--md-sys-color-surface-variant))] text-[color:var(--md-sys-color-on-secondary-container,var(--md-sys-color-primary))] font-semibold'
-                    : 'text-[color:var(--md-sys-color-on-surface-variant)] hover:bg-[color:var(--md-sys-color-surface-container-high)]'
-                }`}
-              >
-                Annual
-              </button>
+            {/* Segmented button: Monthly / Quarterly / Annual */}
+            <div className="flex flex-col gap-2 self-start sm:self-auto">
+              <div className="flex h-11 items-center border border-[color:var(--md-sys-color-outline)] rounded-full p-1 select-none">
+                <button
+                  type="button"
+                  onClick={() => setSummaryPeriod('month')}
+                  className={`px-4 h-9 flex items-center justify-center text-[13px] font-medium rounded-full transition-colors duration-150 cursor-pointer ${
+                    summaryPeriod === 'month'
+                      ? 'bg-[color:var(--md-sys-color-secondary-container,var(--md-sys-color-surface-variant))] text-[color:var(--md-sys-color-on-secondary-container,var(--md-sys-color-primary))] font-semibold'
+                      : 'text-[color:var(--md-sys-color-on-surface-variant)] hover:bg-[color:var(--md-sys-color-surface-container-high)]'
+                  }`}
+                >
+                  Monthly
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSummaryPeriod('quarter')}
+                  className={`px-4 h-9 flex items-center justify-center text-[13px] font-medium rounded-full transition-colors duration-150 cursor-pointer ${
+                    summaryPeriod === 'quarter'
+                      ? 'bg-[color:var(--md-sys-color-secondary-container,var(--md-sys-color-surface-variant))] text-[color:var(--md-sys-color-on-secondary-container,var(--md-sys-color-primary))] font-semibold'
+                      : 'text-[color:var(--md-sys-color-on-surface-variant)] hover:bg-[color:var(--md-sys-color-surface-container-high)]'
+                  }`}
+                >
+                  Quarterly
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSummaryPeriod('year')}
+                  className={`px-4 h-9 flex items-center justify-center text-[13px] font-medium rounded-full transition-colors duration-150 cursor-pointer ${
+                    summaryPeriod === 'year'
+                      ? 'bg-[color:var(--md-sys-color-secondary-container,var(--md-sys-color-surface-variant))] text-[color:var(--md-sys-color-on-secondary-container,var(--md-sys-color-primary))] font-semibold'
+                      : 'text-[color:var(--md-sys-color-on-surface-variant)] hover:bg-[color:var(--md-sys-color-surface-container-high)]'
+                  }`}
+                >
+                  Annual
+                </button>
+              </div>
+              {/* Q1–Q4 sub-selector, only visible when Quarterly is selected */}
+              {summaryPeriod === 'quarter' && (
+                <div className="flex h-8 items-center border border-[color:var(--md-sys-color-outline-variant)] rounded-full p-0.5 select-none self-center">
+                  {([1, 2, 3, 4] as const).map(q => (
+                    <button
+                      key={q}
+                      type="button"
+                      onClick={() => setSelectedQuarter(q)}
+                      className={`px-3 h-7 flex items-center justify-center text-[12px] font-medium rounded-full transition-colors duration-150 cursor-pointer ${
+                        selectedQuarter === q
+                          ? 'bg-[color:var(--md-sys-color-secondary-container,var(--md-sys-color-surface-variant))] text-[color:var(--md-sys-color-on-secondary-container,var(--md-sys-color-primary))] font-semibold'
+                          : 'text-[color:var(--md-sys-color-on-surface-variant)] hover:bg-[color:var(--md-sys-color-surface-container-high)]'
+                      }`}
+                    >
+                      Q{q}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
           <div>
             {summaryPeriod === 'month'
               ? renderMonthSummaryCards(activeView === 'dashboard')
+              : summaryPeriod === 'quarter'
+              ? renderQuarterSummaryCards(activeView === 'dashboard')
               : renderYearSummaryCards(activeView === 'dashboard')
             }
           </div>
