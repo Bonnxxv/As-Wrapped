@@ -235,7 +235,7 @@ export const MacSidebar: React.FC<MacSidebarProps> = React.memo(({
           className={`text-[15px] font-semibold tracking-tight text-[color:var(--md-sys-color-on-surface)] truncate transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden ${isCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[150px] opacity-100'}`}
           style={{ fontFamily: "'Google Sans Display', sans-serif" }}
         >
-          Asrep Tracker
+          As-Wrapped Tracker
         </span>
         <button
           onClick={onToggleCollapse}

@@ -2,9 +2,13 @@ import { useState, useEffect } from 'react';
 import { FolderDataState, PlatformProfiles, ContentEntry, PlatformType } from '../types';
 import { getInitialMockFolders, getInitialProfiles } from '../utils/initialState';
 
-const FOLDERS_STORAGE_KEY = 'asrep_folders_data';
-const PROFILES_STORAGE_KEY = 'asrep_profiles_data';
-const YEARS_STORAGE_KEY = 'asrep_years_data';
+const FOLDERS_STORAGE_KEY = 'aswrapped_folders_data';
+const PROFILES_STORAGE_KEY = 'aswrapped_profiles_data';
+const YEARS_STORAGE_KEY = 'aswrapped_years_data';
+
+const OLD_FOLDERS_STORAGE_KEY = 'asrep_folders_data';
+const OLD_PROFILES_STORAGE_KEY = 'asrep_profiles_data';
+const OLD_YEARS_STORAGE_KEY = 'asrep_years_data';
 
 const migrateFoldersData = (data: any): FolderDataState => {
   const migrated: FolderDataState = {};
@@ -112,7 +116,13 @@ const migrateProfilesData = (data: any): PlatformProfiles => {
 export const useAppState = () => {
   // Years array
   const [years, setYears] = useState<number[]>(() => {
-    const saved = localStorage.getItem(YEARS_STORAGE_KEY);
+    let saved = localStorage.getItem(YEARS_STORAGE_KEY);
+    if (!saved) {
+      saved = localStorage.getItem(OLD_YEARS_STORAGE_KEY);
+      if (saved) {
+        localStorage.setItem(YEARS_STORAGE_KEY, saved);
+      }
+    }
     if (saved) {
       try {
         return JSON.parse(saved);
@@ -128,7 +138,13 @@ export const useAppState = () => {
 
   // Folders state
   const [folders, setFolders] = useState<FolderDataState>(() => {
-    const saved = localStorage.getItem(FOLDERS_STORAGE_KEY);
+    let saved = localStorage.getItem(FOLDERS_STORAGE_KEY);
+    if (!saved) {
+      saved = localStorage.getItem(OLD_FOLDERS_STORAGE_KEY);
+      if (saved) {
+        localStorage.setItem(FOLDERS_STORAGE_KEY, saved);
+      }
+    }
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -143,7 +159,13 @@ export const useAppState = () => {
 
   // Profile followers state
   const [profiles, setProfiles] = useState<PlatformProfiles>(() => {
-    const saved = localStorage.getItem(PROFILES_STORAGE_KEY);
+    let saved = localStorage.getItem(PROFILES_STORAGE_KEY);
+    if (!saved) {
+      saved = localStorage.getItem(OLD_PROFILES_STORAGE_KEY);
+      if (saved) {
+        localStorage.setItem(PROFILES_STORAGE_KEY, saved);
+      }
+    }
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -264,7 +286,7 @@ export const useAppState = () => {
       };
       const jsonString = JSON.stringify(backup, null, 2);
       const dateStr = new Date().toISOString().split('T')[0];
-      const filename = `asrep_backup_${dateStr}.json`;
+      const filename = `aswrapped_backup_${dateStr}.json`;
 
       // Check if running inside Tauri environment
       if ((window as any).__TAURI_INTERNALS__) {
@@ -339,7 +361,7 @@ export const useAppState = () => {
           resolve(true);
         } catch (err) {
           console.error("Failed to import data", err);
-          alert("Gagal mengimpor data. Pastikan file JSON yang Anda pilih adalah file cadangan Asrep yang valid.\nError: " + (err instanceof Error ? err.message : String(err)));
+          alert("Gagal mengimpor data. Pastikan file JSON yang Anda pilih adalah file cadangan As-Wrapped yang valid.\nError: " + (err instanceof Error ? err.message : String(err)));
           resolve(false);
         }
       };

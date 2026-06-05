@@ -112,6 +112,53 @@ const CalendarWidget = ({ year, monthIndex, activeMonthData }: { year: number, m
   );
 };
 
+interface SequoiaDialogProps {
+  show: boolean;
+  onClose: () => void;
+  children: React.ReactNode;
+  maxWidthClass?: string;
+}
+
+const SequoiaDialog: React.FC<SequoiaDialogProps> = ({ show, onClose, children, maxWidthClass = "max-w-3xl" }) => {
+  const [rendered, setRendered] = React.useState(false);
+  const [animClass, setAnimClass] = React.useState('');
+  const [cachedChildren, setCachedChildren] = React.useState<React.ReactNode>(null);
+
+  React.useEffect(() => {
+    if (show) {
+      setCachedChildren(children);
+      setRendered(true);
+      const t = setTimeout(() => setAnimClass('md-dialog-enter'), 16);
+      return () => clearTimeout(t);
+    } else {
+      setAnimClass('md-dialog-exit');
+      const t = setTimeout(() => {
+        setRendered(false);
+        setAnimClass('');
+        setCachedChildren(null);
+      }, 200);
+      return () => clearTimeout(t);
+    }
+  }, [show, children]);
+
+  if (!rendered) return null;
+
+  return (
+    <div
+      className={`fixed inset-0 z-50 flex items-center justify-center p-4 mac-backdrop ${show ? 'md-backdrop-enter' : 'md-backdrop-exit'}`}
+      onClick={onClose}
+    >
+      <div
+        className={`bg-[color:var(--md-sys-color-surface)] border border-[color:var(--md-sys-color-outline-variant)] w-full overflow-hidden rounded-3xl shadow-[var(--md-elevation-3)] ${maxWidthClass} ${animClass}`}
+        style={{ willChange: 'transform, opacity' }}
+        onClick={e => e.stopPropagation()}
+      >
+        {show ? children : cachedChildren}
+      </div>
+    </div>
+  );
+};
+
 interface DashboardViewProps {
   folders: FolderDataState;
   profiles: PlatformProfiles;
@@ -144,6 +191,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     metric: 'views' | 'uploads' | 'engagement' | 'fyp';
   } | null>(null);
   const [selectedCycleWeek, setSelectedCycleWeek] = React.useState<number>(0);
+
+  const lastExpandedChartRef = React.useRef<typeof expandedChart>(null);
+  if (expandedChart) {
+    lastExpandedChartRef.current = expandedChart;
+  }
+  const lastExpandedCardRef = React.useRef<typeof expandedCard>(null);
+  if (expandedCard) {
+    lastExpandedCardRef.current = expandedCard;
+  }
 
   // Line break calculations based on current date
   const now = new Date();
@@ -1175,14 +1231,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   };
 
   const renderExpandedChartPopup = () => {
-    if (!expandedChart) return null;
+    const activeChart = expandedChart || lastExpandedChartRef.current;
+    if (!activeChart) return null;
 
     let title = '';
     let chartData: any[] = [];
     let chartElement: React.ReactNode = null;
     let showMonthSelector = false;
 
-    if (expandedChart === 'monthly-combined') {
+    if (activeChart === 'monthly-combined') {
       title = `Gabungan - Tren Tayangan Bulanan ${selectedYear}`;
       chartData = momChartData;
       chartElement = (
@@ -1196,7 +1253,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <Line type="monotone" dataKey="ttViews" name="ttViews" stroke={chartColors.cyan} strokeWidth={2} strokeDasharray="4 4" dot={{ fill: chartColors.cyan, strokeWidth: 0, r: 3 }} activeDot={{ r: 5 }} isAnimationActive={false} />
         </LineChart>
       );
-    } else if (expandedChart === 'monthly-platform') {
+    } else if (activeChart === 'monthly-platform') {
       title = `${activeView === 'instagram' ? 'Instagram' : 'TikTok'} - Tren Tayangan Bulanan ${selectedYear}`;
       chartData = momChartData;
       const strokeColor = activeView === 'instagram' ? chartColors.red : activeView === 'tiktok' ? chartColors.cyan : chartColors.blue;
@@ -1209,7 +1266,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <Line type="monotone" dataKey="views" stroke={strokeColor} strokeWidth={3} dot={{ fill: strokeColor, strokeWidth: 0, r: 4 }} activeDot={{ r: 6, strokeWidth: 0 }} isAnimationActive={false} />
         </LineChart>
       );
-    } else if (expandedChart === 'daily') {
+    } else if (activeChart === 'daily') {
       title = `${activeView === 'instagram' ? 'Instagram' : 'TikTok'} - Tren Tayangan Harian - ${MONTH_NAMES[selectedMonth]} ${selectedYear}`;
       chartData = dailyChartData;
       showMonthSelector = true;
@@ -1223,7 +1280,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <Line type="monotone" dataKey="views" stroke={strokeColor} strokeWidth={3} dot={{ fill: strokeColor, strokeWidth: 0, r: 4 }} activeDot={{ r: 6, strokeWidth: 0 }} isAnimationActive={false} />
         </LineChart>
       );
-    } else if (expandedChart === 'cycle') {
+    } else if (activeChart === 'cycle') {
       const activeWeekLabel = activeWeekRange ? activeWeekRange.label : '';
       title = `${activeView === 'instagram' ? 'Instagram' : 'TikTok'} - Cycle Chart (${activeWeekLabel}) - ${selectedYear}`;
       chartData = cycleChartData;
@@ -1241,72 +1298,71 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     }
 
     return (
-      <div className="fixed inset-0 z-50 mac-backdrop flex items-center justify-center p-4 md-backdrop-enter">
-        <div className="bg-[color:var(--md-sys-color-surface)] border border-[color:var(--md-sys-color-outline-variant)] w-full max-w-4xl overflow-hidden rounded-3xl shadow-[var(--md-elevation-3)] md-dialog-enter">
-          {/* Header */}
-          <div className="flex items-center justify-between px-6 py-5 border-b border-[color:var(--md-sys-color-outline-variant)]">
-            <div className="flex items-center gap-2">
-              <h2 className="md-title-medium text-[color:var(--md-sys-color-on-surface)]">{title}</h2>
-            </div>
-            
-            {/* Interactive Selectors inside Popup */}
-            <div className="flex items-center gap-3">
-              {expandedChart === 'cycle' ? (
-                <>
+      <SequoiaDialog show={expandedChart !== null} onClose={() => setExpandedChart(null)} maxWidthClass="max-w-4xl">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-5 border-b border-[color:var(--md-sys-color-outline-variant)]">
+          <div className="flex items-center gap-2">
+            <h2 className="md-title-medium text-[color:var(--md-sys-color-on-surface)]">{title}</h2>
+          </div>
+          
+          {/* Interactive Selectors inside Popup */}
+          <div className="flex items-center gap-3">
+            {activeChart === 'cycle' ? (
+              <>
+                <MacDropdown
+                  value={selectedMonth}
+                  onChange={onSelectMonth}
+                  options={monthOptions}
+                />
+                <MacDropdown
+                  value={safeWeekIndex}
+                  onChange={setSelectedCycleWeek}
+                  options={weekOptions}
+                />
+              </>
+            ) : (
+              <>
+                {showMonthSelector && (
                   <MacDropdown
                     value={selectedMonth}
                     onChange={onSelectMonth}
                     options={monthOptions}
                   />
-                  <MacDropdown
-                    value={safeWeekIndex}
-                    onChange={setSelectedCycleWeek}
-                    options={weekOptions}
-                  />
-                </>
-              ) : (
-                <>
-                  {showMonthSelector && (
-                    <MacDropdown
-                      value={selectedMonth}
-                      onChange={onSelectMonth}
-                      options={monthOptions}
-                    />
-                  )}
-                  <MacDropdown
-                    value={selectedYear}
-                    onChange={onSelectYear}
-                    options={yearOptions}
-                  />
-                </>
-              )}
-              <button
-                type="button"
-                onClick={() => setExpandedChart(null)}
-                className="md-icon-btn"
-              >
-                <X size={18} />
-              </button>
-            </div>
-          </div>
-
-          {/* Expanded Chart Content */}
-          <div className="p-6 bg-[color:var(--md-sys-color-surface)] flex flex-col gap-4">
-            <div className="h-[450px] w-full bg-[color:var(--md-sys-color-background)] border border-[color:var(--md-sys-color-outline-variant)] rounded-lg p-4">
-              <ResponsiveContainer width="100%" height="100%">
-                {chartElement}
-              </ResponsiveContainer>
-            </div>
+                )}
+                <MacDropdown
+                  value={selectedYear}
+                  onChange={onSelectYear}
+                  options={yearOptions}
+                />
+              </>
+            )}
+            <button
+              type="button"
+              onClick={() => setExpandedChart(null)}
+              className="md-icon-btn"
+            >
+              <X size={18} />
+            </button>
           </div>
         </div>
-      </div>
+
+        {/* Expanded Chart Content */}
+        <div className="p-6 bg-[color:var(--md-sys-color-surface)] flex flex-col gap-4">
+          <div className="h-[450px] w-full bg-[color:var(--md-sys-color-background)] border border-[color:var(--md-sys-color-outline-variant)] rounded-lg p-4">
+            <ResponsiveContainer width="100%" height="100%">
+              {chartElement}
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </SequoiaDialog>
     );
   };
 
   const renderSummaryCardDetailPopup = () => {
-    if (!expandedCard) return null;
+    const activeCard = expandedCard || lastExpandedCardRef.current;
+    if (!activeCard) return null;
 
-    const { period, metric } = expandedCard;
+    const { period, metric } = activeCard;
     let title = '';
     let description = '';
     let contentNode: React.ReactNode = null;
@@ -2004,40 +2060,38 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     }
 
     return (
-      <div className="fixed inset-0 z-50 mac-backdrop flex items-center justify-center p-4 md-backdrop-enter">
-        <div className="bg-[color:var(--md-sys-color-surface)] border border-[color:var(--md-sys-color-outline-variant)] w-full max-w-3xl overflow-hidden rounded-3xl shadow-[var(--md-elevation-3)] md-dialog-enter">
-          {/* Header */}
-          <div className="flex items-center justify-between px-6 py-5 border-b border-[color:var(--md-sys-color-outline-variant)]">
-            <div className="flex items-center gap-2">
-              <h2 className="md-title-medium text-[color:var(--md-sys-color-on-surface)]">{title}</h2>
-            </div>
+      <SequoiaDialog show={expandedCard !== null} onClose={() => setExpandedCard(null)} maxWidthClass="max-w-3xl">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-5 border-b border-[color:var(--md-sys-color-outline-variant)]">
+          <div className="flex items-center gap-2">
+            <h2 className="md-title-medium text-[color:var(--md-sys-color-on-surface)]">{title}</h2>
+          </div>
+          <button
+            type="button"
+            onClick={() => setExpandedCard(null)}
+            className="md-icon-btn"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-6 flex flex-col gap-4 text-sm bg-[color:var(--md-sys-color-surface)] text-[color:var(--md-sys-color-on-surface)]">
+          <div>
+            <p className="md-body-medium text-[color:var(--md-sys-color-on-surface-variant)]">{description}</p>
+          </div>
+          {contentNode}
+          <div className="flex justify-end mt-2 pt-3 border-t border-[color:var(--md-sys-color-outline-variant)]">
             <button
               type="button"
               onClick={() => setExpandedCard(null)}
-              className="md-icon-btn"
+              className="gai-btn-text"
             >
-              <X size={18} />
+              Close
             </button>
           </div>
-
-          {/* Content */}
-          <div className="p-6 flex flex-col gap-4 text-sm bg-[color:var(--md-sys-color-surface)] text-[color:var(--md-sys-color-on-surface)]">
-            <div>
-              <p className="md-body-medium text-[color:var(--md-sys-color-on-surface-variant)]">{description}</p>
-            </div>
-            {contentNode}
-            <div className="flex justify-end mt-2 pt-3 border-t border-[color:var(--md-sys-color-outline-variant)]">
-              <button
-                type="button"
-                onClick={() => setExpandedCard(null)}
-                className="gai-btn-text"
-              >
-                Close
-              </button>
-            </div>
-          </div>
         </div>
-      </div>
+      </SequoiaDialog>
     );
   };
 

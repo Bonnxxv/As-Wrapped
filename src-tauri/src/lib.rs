@@ -14,8 +14,8 @@ fn save_backup_file(app: tauri::AppHandle, content: String, filename: String) ->
     let mut path = app.path().document_dir()
         .map_err(|e| format!("Gagal mendapatkan folder Documents: {}", e))?;
     
-    // Create a subfolder "Asrep Backups" to be super clean and organized
-    path.push("Asrep Backups");
+    // Create a subfolder "As-Wrapped Backups" to be super clean and organized
+    path.push("As-Wrapped Backups");
     if !path.exists() {
         std::fs::create_dir_all(&path)
             .map_err(|e| format!("Gagal membuat folder cadangan: {}", e))?;

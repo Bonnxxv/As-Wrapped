@@ -1,6 +1,6 @@
-# Asrep (Analytics Report Tracker)
+# As-Wrapped (Analytics Report Tracker)
 
-Asrep adalah aplikasi desktop berbasis **Tauri + React + TypeScript** yang dirancang untuk melacak, mengelola, dan menganalisis performa konten media sosial secara dinamis (Instagram dan TikTok). Aplikasi ini membantu kreator, manajer media sosial, dan analis untuk mencatat metrik utama (Views, Likes, Comments, Saves, Shares) dan memvisualisasikan tren performa dalam basis folder bulanan dan tahunan.
+As-Wrapped adalah aplikasi desktop berbasis **Tauri + React + TypeScript** yang dirancang untuk melacak, mengelola, dan menganalisis performa konten media sosial secara dinamis (Instagram dan TikTok). Aplikasi ini membantu kreator, manajer media sosial, dan analis untuk mencatat metrik utama (Views, Likes, Comments, Saves, Shares) dan memvisualisasikan tren performa dalam basis folder bulanan dan tahunan.
 
 ---
 
@@ -29,7 +29,7 @@ Aplikasi ini menggunakan bahasa desain **Google AI / Material You (Material Desi
 ## 📂 Struktur Folder Proyek
 
 ```text
-Asrep/
+As-Wrapped/
 ├── src/
 │   ├── components/
 │   │   ├── MacSidebar.tsx       # Navigation Rail ala Google AI (Pill active indicator, import/export, profile edit)

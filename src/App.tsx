@@ -49,7 +49,13 @@ function App() {
 
   // 3. Dark & Light Theme State and Synchronizer
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
-    const saved = localStorage.getItem('asrep_theme');
+    let saved = localStorage.getItem('aswrapped_theme');
+    if (!saved) {
+      saved = localStorage.getItem('asrep_theme');
+      if (saved) {
+        localStorage.setItem('aswrapped_theme', saved);
+      }
+    }
     if (saved === 'light' || saved === 'dark') return saved;
     // System preferences checking
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
@@ -107,7 +113,7 @@ function App() {
   const handleToggleTheme = () => {
     setTheme(prev => {
       const nextTheme = prev === 'dark' ? 'light' : 'dark';
-      localStorage.setItem('asrep_theme', nextTheme);
+      localStorage.setItem('aswrapped_theme', nextTheme);
       return nextTheme;
     });
   };

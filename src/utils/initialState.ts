@@ -91,13 +91,13 @@ export const getInitialMockFolders = (): FolderDataState => {
 export const getInitialProfiles = (): PlatformProfiles => {
   return {
     instagram: {
-      username: 'asrep.aesthetic',
-      fullName: 'Asrep Instagram Official',
+      username: 'aswrapped.aesthetic',
+      fullName: 'As-Wrapped Instagram Official',
       followers: 84200
     },
     tiktok: {
-      username: 'asrep.creative',
-      fullName: 'Asrep TikTok Official',
+      username: 'aswrapped.creative',
+      fullName: 'As-Wrapped TikTok Official',
       followers: 124500
     }
   };
