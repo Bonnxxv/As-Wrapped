@@ -5,7 +5,8 @@ import {
   Edit3, 
   FolderOpen, 
   Sparkles,
-  Search
+  Search,
+  FileText
 } from 'lucide-react';
 import { ContentEntry } from '../types';
 import { MONTH_NAMES } from '../utils/initialState';
@@ -18,6 +19,7 @@ interface MonthFolderViewProps {
   onAddContentClick: () => void;
   onEditContentClick: (entry: ContentEntry) => void;
   onDeleteContent: (id: string) => void;
+  onGenerateReportClick: (periodType: 'month' | 'year') => void;
 }
 
 export const MonthFolderView: React.FC<MonthFolderViewProps> = React.memo(({
@@ -26,7 +28,8 @@ export const MonthFolderView: React.FC<MonthFolderViewProps> = React.memo(({
   contents,
   onAddContentClick,
   onEditContentClick,
-  onDeleteContent
+  onDeleteContent,
+  onGenerateReportClick
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [groupBy, setGroupBy] = useState<'none' | 'instagram' | 'tiktok' | 'fyp'>('none');
@@ -105,6 +108,16 @@ export const MonthFolderView: React.FC<MonthFolderViewProps> = React.memo(({
 
         {/* Right: Actions */}
         <div className="flex items-center gap-2">
+          {contents.length > 0 && (
+            <button
+              onClick={() => onGenerateReportClick('month')}
+              className="gai-btn-tonal gap-2 font-semibold"
+              style={{ border: '1px solid var(--md-sys-color-outline)' }}
+            >
+              <FileText size={14} />
+              <span>Generate Report</span>
+            </button>
+          )}
           <button
             onClick={onAddContentClick}
             className="gai-btn-filled gap-2"

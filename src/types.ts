@@ -35,3 +35,11 @@ export interface AppState {
   folders: FolderDataState;
   profiles: PlatformProfiles;
 }
+
+export interface ApiKeyConfig {
+  id: string;
+  provider: 'gemini' | 'huggingface';
+  apiKey: string;
+  model: string;
+  label: string;
+}

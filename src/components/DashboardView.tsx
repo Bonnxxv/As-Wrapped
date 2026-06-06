@@ -19,7 +19,8 @@ import {
   Crown,
   Maximize2,
   X,
-  Check
+  Check,
+  FileText
 } from 'lucide-react';
 import { FolderDataState, PlatformProfiles, ContentEntry } from '../types';
 import { MONTH_NAMES, getDaysInMonth } from '../utils/initialState';
@@ -169,6 +170,7 @@ interface DashboardViewProps {
   onSelectYear: (year: number) => void;
   years: number[];
   isDarkMode: boolean;
+  onGenerateReportClick: (periodType: 'month' | 'year') => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -180,7 +182,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onSelectMonth,
   onSelectYear,
   years,
-  isDarkMode
+  isDarkMode,
+  onGenerateReportClick
 }) => {
   // Expanded states
   const [expandedChart, setExpandedChart] = React.useState<'monthly-combined' | 'monthly-platform' | 'daily' | 'cycle' | null>(null);
@@ -2126,6 +2129,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             )}
           </div>
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => onGenerateReportClick(summaryPeriod === 'year' ? 'year' : 'month')}
+              className="gai-btn-tonal gap-2 font-semibold h-11 px-4 rounded-xl text-sm"
+              style={{ border: '1px solid var(--md-sys-color-outline)' }}
+            >
+              <FileText size={14} />
+              <span>Generate Report</span>
+            </button>
             <MacDropdown
               value={selectedMonth}
               onChange={onSelectMonth}

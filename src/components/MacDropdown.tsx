@@ -13,6 +13,7 @@ interface MacDropdownProps {
   className?: string;
   placeholder?: string;
   size?: 'sm' | 'md';
+  direction?: 'down' | 'up';
 }
 
 export const MacDropdown: React.FC<MacDropdownProps> = ({
@@ -21,7 +22,8 @@ export const MacDropdown: React.FC<MacDropdownProps> = ({
   options,
   className = '',
   placeholder = 'Select…',
-  size = 'md'
+  size = 'md',
+  direction = 'down'
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [menuPhase, setMenuPhase] = useState<'hidden' | 'visible' | 'exiting'>('hidden');
@@ -75,7 +77,7 @@ export const MacDropdown: React.FC<MacDropdownProps> = ({
     transitionTimingFunction: 'cubic-bezier(0.2, 0, 0, 1)',
     opacity: menuPhase === 'visible' ? 1 : 0,
     transform: menuPhase === 'visible' ? 'scaleY(1)' : 'scaleY(0.95)',
-    transformOrigin: 'top center',
+    transformOrigin: direction === 'up' ? 'bottom center' : 'top center',
   };
 
   return (
@@ -113,11 +115,12 @@ export const MacDropdown: React.FC<MacDropdownProps> = ({
       {isOpen && (
         <div
           className={`
-            absolute left-0 top-[calc(100%+8px)] z-50 min-w-full
+            absolute left-0 z-50 min-w-full
             bg-[color:var(--md-sys-color-surface-container)]
             border border-[color:var(--md-sys-color-outline-variant)]
             shadow-[var(--md-elevation-2)]
             overflow-hidden
+            ${direction === 'up' ? 'bottom-[calc(100%+8px)]' : 'top-[calc(100%+8px)]'}
             ${size === 'sm' ? 'rounded-[8px]' : 'rounded-[12px]'}
           `}
           style={menuStyle}

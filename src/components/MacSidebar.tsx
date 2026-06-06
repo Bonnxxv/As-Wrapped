@@ -15,10 +15,12 @@ import {
   Download,
   Upload,
   Sun,
-  Moon
+  Moon,
+  Settings
 } from 'lucide-react';
-import { PlatformProfiles, PlatformType } from '../types';
+import { ApiKeyConfig, PlatformProfiles, PlatformType } from '../types';
 import { MONTH_NAMES } from '../utils/initialState';
+import { MacDropdown } from './MacDropdown';
 
 interface MacSidebarProps {
   years: number[];
@@ -36,6 +38,12 @@ interface MacSidebarProps {
   onImportData: (file: File) => Promise<boolean>;
   isDarkMode: boolean;
   onToggleTheme: () => void;
+  apiKeys: ApiKeyConfig[];
+  activeApiKeyId: string;
+  onSelectActiveApiKey: (id: string) => void;
+  onCreateApiKey: (provider: 'gemini' | 'huggingface', key: string, model: string, label: string) => void;
+  onDeleteApiKey: (id: string) => void;
+  onUpdateApiKeyModel: (id: string, model: string) => void;
 }
 
 // Full TikTok music-note path (original 0-24 space, spans ~x:2.3-20.7, y:0-24.3)
@@ -135,7 +143,13 @@ export const MacSidebar: React.FC<MacSidebarProps> = React.memo(({
   onExportData,
   onImportData,
   isDarkMode,
-  onToggleTheme
+  onToggleTheme,
+  apiKeys,
+  activeApiKeyId,
+  onSelectActiveApiKey,
+  onCreateApiKey,
+  onDeleteApiKey,
+  onUpdateApiKeyModel
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -155,6 +169,24 @@ export const MacSidebar: React.FC<MacSidebarProps> = React.memo(({
   const [editUsername, setEditUsername] = useState('');
   const [editFullName, setEditFullName] = useState('');
   const [editFollowers, setEditFollowers] = useState(0);
+
+  const [isEditingSettings, setIsEditingSettings] = useState(false);
+  const [addProvider, setAddProvider] = useState<'gemini' | 'huggingface'>('gemini');
+  const [addApiKey, setAddApiKey] = useState('');
+  const [addLabel, setAddLabel] = useState('');
+
+  const openSettingsDialog = () => {
+    setIsEditingSettings(true);
+  };
+
+  const handleAddApiKeySubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!addApiKey.trim()) return;
+    const defaultModel = addProvider === 'gemini' ? 'gemini-2.5-flash' : 'Qwen/Qwen2.5-72B-Instruct';
+    onCreateApiKey(addProvider, addApiKey.trim(), defaultModel, addLabel);
+    setAddApiKey('');
+    setAddLabel('');
+  };
 
   const toggleYearCollapse = (year: number) => {
     if (isCollapsed) onToggleCollapse();
@@ -440,7 +472,7 @@ export const MacSidebar: React.FC<MacSidebarProps> = React.memo(({
 
         <div
           className={`flex flex-col gap-2 transition-all duration-300 ease-in-out overflow-hidden
-            ${isSystemCollapsed ? 'max-h-0 opacity-0 pointer-events-none' : 'max-h-[200px] opacity-100 mt-2'}`}
+            ${isSystemCollapsed ? 'max-h-0 opacity-0 pointer-events-none' : 'max-h-[260px] opacity-100 mt-2'}`}
         >
           <button
             onClick={onToggleTheme}
@@ -454,6 +486,21 @@ export const MacSidebar: React.FC<MacSidebarProps> = React.memo(({
             {isDarkMode ? <Sun size={14} className="shrink-0" /> : <Moon size={14} className="shrink-0" />}
             <span className={`transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden ${isCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[150px] opacity-100'}`}>
               {isDarkMode ? "Switch to Light" : "Switch to Dark"}
+            </span>
+          </button>
+
+          <button
+            onClick={openSettingsDialog}
+            className={`flex items-center justify-center transition-all duration-300 shrink-0 select-none cursor-pointer overflow-hidden
+              ${isCollapsed
+                ? 'w-11 h-11 rounded-full md-icon-btn self-center'
+                : 'gai-btn-outlined w-full h-11 px-4 rounded-xl text-sm gap-2'
+              }`}
+            title={isCollapsed ? "Setelan API" : "Setelan Gemini API"}
+          >
+            <Settings size={14} className="shrink-0" />
+            <span className={`transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden ${isCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[150px] opacity-100'}`}>
+              Setelan API
             </span>
           </button>
 
@@ -612,6 +659,173 @@ export const MacSidebar: React.FC<MacSidebarProps> = React.memo(({
             <button type="submit" className="gai-btn-filled">Save</button>
           </div>
         </form>
+      </SmallDialog>
+
+      {/* ══ Dialog: Setelan API ══════════════ */}
+      <SmallDialog show={isEditingSettings} onClose={() => setIsEditingSettings(false)}>
+        <div
+          className="
+            bg-[color:var(--md-sys-color-surface)]
+            border border-[color:var(--md-sys-color-outline-variant)]
+            rounded-3xl shadow-[var(--md-elevation-3)]
+            w-[380px] flex flex-col gap-5 p-6 select-none
+          "
+        >
+          {/* Header */}
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h2 className="md-title-large text-[color:var(--md-sys-color-on-surface)] leading-tight">
+                Setelan API Key & AI
+              </h2>
+              <p className="md-body-small text-[color:var(--md-sys-color-on-surface-variant)] mt-1">Kelola kunci API dan pilihan model untuk analitik laporan.</p>
+            </div>
+            <button type="button" onClick={() => setIsEditingSettings(false)} className="md-icon-btn-sm -mr-1 -mt-1 shrink-0">
+              <X size={16} />
+            </button>
+          </div>
+
+          {/* List of saved keys */}
+          <div className="flex flex-col gap-3 max-h-[170px] overflow-y-auto pr-1">
+            <span className="text-[11px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider text-left">Kunci API Terdaftar:</span>
+            {apiKeys.map((key) => {
+              const isActive = key.id === activeApiKeyId;
+              return (
+                <div 
+                  key={key.id}
+                  onClick={() => onSelectActiveApiKey(key.id)}
+                  className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${
+                    isActive 
+                      ? 'border-[color:var(--md-sys-color-primary)] bg-[color:var(--md-sys-color-primary-container)] text-[color:var(--md-sys-color-on-primary-container)]'
+                      : 'border-[color:var(--md-sys-color-outline-variant)] hover:bg-[color:var(--md-sys-color-surface-container-high)] text-[color:var(--md-sys-color-on-surface)]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <input 
+                      type="radio" 
+                      checked={isActive} 
+                      onChange={() => onSelectActiveApiKey(key.id)}
+                      className="cursor-pointer"
+                    />
+                    <div className="flex flex-col text-left min-w-0">
+                      <span className="text-xs font-bold truncate">{key.label}</span>
+                      <span className="text-[10px] opacity-70 mt-0.5 capitalize shrink-0">
+                        {key.provider === 'gemini' ? 'Gemini' : 'Hugging Face'} • {key.apiKey.substring(0, 6)}...{key.apiKey.substring(key.apiKey.length - 4)}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {apiKeys.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDeleteApiKey(key.id);
+                      }}
+                      className="p-1 rounded-full text-red-500 hover:bg-red-500/10 cursor-pointer shrink-0 ml-2"
+                      title="Hapus Kunci"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Active Model Dropdown */}
+          {(() => {
+            const activeKey = apiKeys.find(k => k.id === activeApiKeyId) || apiKeys[0];
+            if (!activeKey) return null;
+            return (
+              <div className="flex flex-col gap-1.5 mt-1">
+                <label className="text-[11px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider text-left">
+                  Model untuk {activeKey.label}:
+                </label>
+                <MacDropdown
+                  value={activeKey.model}
+                  onChange={(modelVal) => onUpdateApiKeyModel(activeKey.id, modelVal)}
+                  options={
+                    activeKey.provider === 'gemini'
+                      ? [
+                          { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash (Cepat & Pintar)' },
+                          { value: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro (Analisis Sangat Mendalam)' },
+                          { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash (Sangat Responsif)' },
+                          { value: 'gemini-2.0-flash-thinking-exp', label: 'Gemini 2.0 Flash Thinking (Reasoning)' },
+                          { value: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash (Warisan/Legacy)' },
+                          { value: 'gemini-1.5-pro', label: 'Gemini 1.5 Pro (Warisan/Legacy)' }
+                        ]
+                      : [
+                          { value: 'Qwen/Qwen2.5-72B-Instruct', label: 'Qwen 2.5 72B (Sangat Lancar ID)' },
+                          { value: 'deepseek-ai/DeepSeek-R1-Distill-Qwen-32B', label: 'DeepSeek R1 Distill Qwen 32B (Reasoning)' },
+                          { value: 'meta-llama/Llama-3.3-70B-Instruct', label: 'Llama 3.3 70B (Umum/General)' },
+                          { value: 'mistralai/Mistral-7B-Instruct-v0.3', label: 'Mistral 7B (Cepat/Ringan)' },
+                          { value: 'microsoft/Phi-3-mini-4k-instruct', label: 'Phi-3 Mini 3.8B (Ultra Cepat)' }
+                        ]
+                  }
+                  className="w-full text-left"
+                />
+              </div>
+            );
+          })()}
+
+          {/* Add Key Form */}
+          <form onSubmit={handleAddApiKeySubmit} className="flex flex-col gap-3 pt-4 border-t border-[color:var(--md-sys-color-outline-variant)]">
+            <span className="text-[11px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider text-left">Tambah Kunci API Baru:</span>
+            
+            <div className="flex gap-2">
+              <div className="w-[120px] shrink-0">
+                <MacDropdown
+                  value={addProvider}
+                  onChange={(val) => setAddProvider(val as any)}
+                  options={[
+                    { value: 'gemini', label: 'Gemini' },
+                    { value: 'huggingface', label: 'Hugging Face' }
+                  ]}
+                  size="sm"
+                  className="w-full"
+                />
+              </div>
+
+              <input
+                type="text"
+                value={addLabel}
+                onChange={e => setAddLabel(e.target.value)}
+                placeholder="Label kunci (opsional)..."
+                className="gai-input text-xs flex-1"
+                style={{ padding: '8px 12px' }}
+              />
+            </div>
+
+            <div className="flex gap-2">
+              <input
+                type="password"
+                value={addApiKey}
+                onChange={e => setAddApiKey(e.target.value)}
+                placeholder="Masukkan API Key..."
+                className="gai-input text-xs flex-1"
+                style={{ padding: '8px 12px' }}
+                required
+              />
+              <button 
+                type="submit" 
+                className="gai-btn-filled text-xs rounded-xl px-4 h-9 flex items-center justify-center cursor-pointer shrink-0 font-medium"
+              >
+                Tambah
+              </button>
+            </div>
+          </form>
+
+          {/* Actions */}
+          <div className="flex gap-2 justify-end border-t border-[color:var(--md-sys-color-outline-variant)] pt-3">
+            <button 
+              type="button" 
+              onClick={() => setIsEditingSettings(false)} 
+              className="gai-btn-filled px-5 h-9 rounded-xl text-xs flex items-center justify-center cursor-pointer font-medium"
+            >
+              Selesai
+            </button>
+          </div>
+        </div>
       </SmallDialog>
 
     </div>
