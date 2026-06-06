@@ -2,8 +2,6 @@ import React from 'react';
 import {
   LineChart,
   Line,
-  BarChart,
-  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -173,7 +171,6 @@ interface DashboardViewProps {
   years: number[];
   isDarkMode: boolean;
   onGenerateReportClick: (periodType: 'month' | 'year') => void;
-  onSelectView?: (view: 'dashboard' | 'instagram' | 'tiktok' | 'folder', year?: number | null, month?: number | null) => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -186,8 +183,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onSelectYear,
   years,
   isDarkMode,
-  onGenerateReportClick,
-  onSelectView
+  onGenerateReportClick
 }) => {
   // Expanded states
   const [expandedChart, setExpandedChart] = React.useState<'monthly-combined' | 'monthly-platform' | 'daily' | 'cycle' | null>(null);
@@ -2235,28 +2231,116 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
         {/* SECTION: DASHBOARD MAIN LAYOUT */}
         {activeView === 'dashboard' && (
-          <div className="space-y-6">
-            {/* Middle Grid: Traffic Trends & Platform Share */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
-              
-              {/* Traffic Trends (Combined Views Monthly Bar Chart) */}
-              <div className="lg:col-span-2 bg-[color:var(--md-sys-color-surface)] border border-[color:var(--md-sys-color-outline-variant)] rounded-2xl p-6 shadow-[var(--md-elevation-1)]">
-                <div className="flex justify-between items-center mb-4 pb-2 border-b border-[color:var(--md-sys-color-outline-variant)]">
-                  <div>
-                    <h3 className="text-base font-bold text-[color:var(--md-sys-color-on-surface)]">Traffic Trends</h3>
-                    <p className="text-xs text-[color:var(--md-sys-color-on-surface-variant)] mt-0.5 font-medium">Monthly combined sessions overview</p>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+
+            {/* === LEFT COLUMN === */}
+            <div className="flex flex-col gap-6 lg:border-r border-[color:var(--md-sys-color-outline-variant)] lg:pr-8">
+              {/* Top Performing Content Leaderboard */}
+              <div>
+                <h3 className="md-label-large text-[color:var(--md-sys-color-on-surface-variant)] mb-4 pb-2 border-b border-[color:var(--md-sys-color-outline-variant)]">
+                  Top Content — {MONTH_NAMES[selectedMonth]} {selectedYear}
+                </h3>
+                {bestContents.length === 0 ? (
+                  <p className="text-sm text-[color:var(--md-sys-color-on-surface-variant)] py-2">No content available for this month.</p>
+                ) : (
+                  <div className="space-y-3 py-2">
+                    {bestContents.map((content, idx) => {
+                      const igViews = content.instagram.views;
+                      const ttViews = content.tiktok.views;
+                      const totalViews = igViews + ttViews;
+                      const igPct = totalViews > 0 ? Math.round((igViews / totalViews) * 100) : 0;
+                      const ttPct = totalViews > 0 ? (100 - igPct) : 0;
+
+                      const isFirst = idx === 0;
+
+                      return (
+                      <div key={content.id} className="relative">
+                        <div
+                          className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-lg transition-all duration-150 select-none cursor-default bg-[color:var(--md-sys-color-surface)] border shadow-[var(--md-elevation-1)] ${
+                            isFirst
+                              ? 'border-[color:color-mix(in_srgb,var(--md-sys-color-primary)_30%,transparent)]'
+                              : 'border-[color:var(--md-sys-color-outline-variant)] hover:border-[color:color-mix(in_srgb,var(--md-sys-color-primary)_30%,transparent)]'
+                          }`}
+                          >
+                            <div className="flex items-center gap-4 flex-1">
+                              {/* Rank Badge */}
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${
+                                isFirst
+                                  ? 'bg-[color:var(--md-sys-color-primary)] text-[color:var(--md-sys-color-on-primary)]'
+                                  : 'bg-[color:var(--md-sys-color-surface-container)] text-[color:var(--md-sys-color-on-surface)] border border-[color:var(--md-sys-color-outline-variant)]'
+                              }`}>
+                                {idx + 1}
+                              </div>
+                              
+                              <div className="flex flex-col flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm font-semibold text-[color:var(--md-sys-color-on-surface)] hover:text-[color:var(--md-sys-color-primary)] transition-colors duration-150">
+                                    {content.title}
+                                  </span>
+                                  {isFirst && <Crown size={14} className="text-[#f2a918] shrink-0" />}
+                                </div>
+
+                                <span className="md-label-small text-[color:var(--md-sys-color-on-surface-variant)] mt-1 uppercase">
+                                  MIRRORED · DAY {content.day}
+                                </span>
+
+                                {/* Leaderboard Views Ratio Progress Bar */}
+                                <div className="flex flex-col gap-1.5 mt-2.5 max-w-xs">
+                                  <div className="h-1.5 w-full bg-[color:var(--md-sys-color-surface-variant)] rounded-full overflow-hidden flex">
+                                    <div style={{ width: `${igPct}%`, backgroundColor: getPercentageColor(igPct) }} className="h-full" />
+                                    <div style={{ width: `${ttPct}%`, backgroundColor: getPercentageColor(ttPct) }} className="h-full" />
+                                  </div>
+                                  <div className="flex justify-between text-[12px] font-bold uppercase tracking-wider text-[color:var(--md-sys-color-on-surface-variant)]">
+                                    <span>IG: {fmt(igViews)} ({igPct}%)</span>
+                                    <span>TT: {fmt(ttViews)} ({ttPct}%)</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-6 self-end sm:self-center shrink-0 border-t border-[color:var(--md-sys-color-outline-variant)] sm:border-0 pt-2 sm:pt-0">
+                              <div className="flex flex-col items-end">
+                                <span className="text-sm font-bold text-[color:var(--md-sys-color-on-surface)]">{fmtFull(getMetrics(content).views)}</span>
+                                <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider mt-0.5">
+                                  Views
+                                </span>
+                              </div>
+                              <div className="flex flex-col items-end">
+                                <span className="text-sm font-bold text-[color:var(--md-sys-color-on-surface)]">{fmtFull(getMetrics(content).likes)}</span>
+                                <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider mt-0.5">
+                                  Likes
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
+                )}
+              </div>
+            </div>
+
+            {/* === RIGHT COLUMN === */}
+            <div className="flex flex-col gap-6">
+              
+              {/* Chart */}
+              <div>
+                <div className="flex justify-between items-center mb-4 pb-2 border-b border-[color:var(--md-sys-color-outline-variant)]">
+                  <h3 className="md-label-large text-[color:var(--md-sys-color-on-surface-variant)]">
+                    Monthly Views Trend
+                  </h3>
                   <button
                     onClick={() => setExpandedChart('monthly-combined')}
-                    className="md-icon-btn shrink-0"
-                    title="Perbesar Grafik"
+                    className="md-icon-btn"
+                    title="Expand Chart"
                   >
                     <Maximize2 size={14} />
                   </button>
                 </div>
-                <div className="h-56 w-full mt-4">
+                <div className="h-48 w-full mt-2">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={momChartData} margin={{ top: 10, right: 10, left: 0, bottom: 5 }}>
+                    <LineChart data={momChartData} margin={{ top: 15, right: 15, left: 15, bottom: 5 }}>
                       <CartesianGrid
                         strokeDasharray="3 3"
                         stroke={isDarkMode ? '#3c4043' : '#dadce0'}
@@ -2264,162 +2348,62 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       />
                       <XAxis
                         dataKey="shortName"
-                        tick={{ fill: isDarkMode ? '#bdc1c6' : '#5f6368', fontSize: 11 }}
+                        tick={{ fill: isDarkMode ? '#bdc1c6' : '#5f6368', fontSize: 12 }}
                         axisLine={{ stroke: isDarkMode ? '#3c4043' : '#dadce0' }}
                         tickLine={false}
                       />
                       <YAxis
                         width={40}
-                        tick={{ fill: isDarkMode ? '#bdc1c6' : '#5f6368', fontSize: 11 }}
+                        tick={{ fill: isDarkMode ? '#bdc1c6' : '#5f6368', fontSize: 12 }}
                         axisLine={false}
                         tickLine={false}
                         tickFormatter={(v) => fmt(v)}
                       />
                       <Tooltip
                         {...tooltipStyle}
-                        formatter={(value: any) => [fmtFull(value), 'Views']}
+                        formatter={(value: any, name: any) => [fmtFull(value), name === 'views' ? 'Gabungan' : name === 'igViews' ? 'Instagram' : name === 'ttViews' ? 'TikTok' : name]}
                       />
-                      <Bar
+                      <Line
+                        type="monotone"
                         dataKey="views"
-                        fill={chartColors.blue}
-                        radius={[6, 6, 0, 0]}
-                        maxBarSize={32}
+                        name="Gabungan"
+                        stroke={chartColors.blue}
+                        strokeWidth={2}
+                        dot={{ fill: chartColors.blue, strokeWidth: 0, r: 3 }}
+                        activeDot={{ r: 5, strokeWidth: 0 }}
+                        isAnimationActive={false}
                       />
-                    </BarChart>
+                      <Line
+                        type="monotone"
+                        dataKey="igViews"
+                        name="igViews"
+                        stroke={chartColors.red}
+                        strokeWidth={1.5}
+                        strokeDasharray="4 4"
+                        dot={{ fill: chartColors.red, strokeWidth: 0, r: 2 }}
+                        activeDot={{ r: 4 }}
+                        isAnimationActive={false}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="ttViews"
+                        name="ttViews"
+                        stroke={chartColors.cyan}
+                        strokeWidth={1.5}
+                        strokeDasharray="4 4"
+                        dot={{ fill: chartColors.cyan, strokeWidth: 0, r: 2 }}
+                        activeDot={{ r: 4 }}
+                        isAnimationActive={false}
+                      />
+                    </LineChart>
                   </ResponsiveContainer>
                 </div>
               </div>
 
-              {/* Platform Share (Traffic Sources visual style) */}
-              <div className="bg-[color:var(--md-sys-color-surface)] border border-[color:var(--md-sys-color-outline-variant)] rounded-2xl p-6 shadow-[var(--md-elevation-1)] flex flex-col justify-between">
-                <div>
-                  <h3 className="text-base font-bold text-[color:var(--md-sys-color-on-surface)]">Platform Share</h3>
-                  <p className="text-xs text-[color:var(--md-sys-color-on-surface-variant)] mt-0.5">Views ratio between connected accounts</p>
-                </div>
-
-                <div className="space-y-5 my-6 flex-1 flex flex-col justify-center">
-                  <div>
-                    <div className="flex justify-between text-xs font-semibold text-[color:var(--md-sys-color-on-surface)] mb-1.5">
-                      <span className="flex items-center gap-1.5">
-                        <span className="w-2.5 h-2.5 rounded-full bg-[color:var(--md-sys-color-error)]" />
-                        INSTAGRAM
-                      </span>
-                      <span>{monthIgPct}%</span>
-                    </div>
-                    <div className="h-2 w-full bg-[color:var(--md-sys-color-surface-variant)] rounded-full overflow-hidden">
-                      <div style={{ width: `${monthIgPct}%` }} className="h-full bg-[color:var(--md-sys-color-error)] rounded-full" />
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="flex justify-between text-xs font-semibold text-[color:var(--md-sys-color-on-surface)] mb-1.5">
-                      <span className="flex items-center gap-1.5">
-                        <span className="w-2.5 h-2.5 rounded-full bg-[color:var(--md-sys-color-cyan)]" />
-                        TIKTOK
-                      </span>
-                      <span>{monthTtPct}%</span>
-                    </div>
-                    <div className="h-2 w-full bg-[color:var(--md-sys-color-surface-variant)] rounded-full overflow-hidden">
-                      <div style={{ width: `${monthTtPct}%` }} className="h-full bg-[color:var(--md-sys-color-cyan)] rounded-full" />
-                    </div>
-                  </div>
-                </div>
-
-                <button 
-                  onClick={() => onGenerateReportClick(summaryPeriod === 'year' ? 'year' : 'month')}
-                  className="text-xs font-bold text-[color:var(--md-sys-color-primary)] hover:underline flex items-center gap-1 text-left mt-auto cursor-pointer"
-                >
-                  <span>View full report</span>
-                  <span className="text-[10px]">→</span>
-                </button>
-              </div>
-
-            </div>
-
-            {/* Bottom Grid: Recent Creator Contents (Table) & Upload Activity */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-              
-              {/* Recent Creator Contents Table */}
-              <div className="lg:col-span-2 bg-[color:var(--md-sys-color-surface)] border border-[color:var(--md-sys-color-outline-variant)] rounded-2xl p-6 shadow-[var(--md-elevation-1)]">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h3 className="text-base font-bold text-[color:var(--md-sys-color-on-surface)]">Recent Creator Contents</h3>
-                    <p className="text-xs text-[color:var(--md-sys-color-on-surface-variant)] mt-0.5">Showing latest performed activities</p>
-                  </div>
-                  <button 
-                    onClick={() => onSelectView && onSelectView('folder', selectedYear, selectedMonth)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 border border-[color:var(--md-sys-color-outline-variant)] rounded-full text-xs font-semibold hover:bg-[color:var(--md-sys-color-surface-container-high)] text-[color:var(--md-sys-color-on-surface-variant)] hover:text-[color:var(--md-sys-color-on-surface)] transition-all cursor-pointer"
-                  >
-                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                    </svg>
-                    <span>Filter</span>
-                  </button>
-                </div>
-
-                <div className="overflow-x-auto w-full">
-                  <table className="w-full text-left border-collapse text-xs">
-                    <thead>
-                      <tr className="border-b border-[color:var(--md-sys-color-outline-variant)]">
-                        <th className="py-2.5 pb-2 text-[10px] font-bold uppercase tracking-wider text-[color:var(--md-sys-color-on-surface-variant)]">Date</th>
-                        <th className="py-2.5 pb-2 text-[10px] font-bold uppercase tracking-wider text-[color:var(--md-sys-color-on-surface-variant)]">Content Title</th>
-                        <th className="py-2.5 pb-2 text-[10px] font-bold uppercase tracking-wider text-[color:var(--md-sys-color-on-surface-variant)]">Status</th>
-                        <th className="py-2.5 pb-2 text-[10px] font-bold uppercase tracking-wider text-[color:var(--md-sys-color-on-surface-variant)] text-right">Views</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[color:var(--md-sys-color-outline-variant)]">
-                      {bestContents.length === 0 ? (
-                        <tr>
-                          <td colSpan={4} className="py-4 text-center text-xs text-[color:var(--md-sys-color-on-surface-variant)]">
-                            No content available for this period.
-                          </td>
-                        </tr>
-                      ) : (
-                        bestContents.map((content) => {
-                          const totalViews = content.instagram.views + content.tiktok.views;
-                          const dateStr = `${MONTH_NAMES[selectedMonth].substring(0, 3)} ${content.day}, ${selectedYear}`;
-                          
-                          // Determine status text & class
-                          let statusText = 'NORMAL';
-                          let statusClass = 'bg-[color:var(--md-sys-color-surface-variant)] text-[color:var(--md-sys-color-on-surface-variant)]';
-                          if (totalViews > 20000) {
-                            statusText = 'COMPLETED';
-                            statusClass = 'bg-[color:var(--md-sys-color-primary-container)] text-[color:var(--md-sys-color-on-primary-container)]';
-                          } else if (totalViews > 5000) {
-                            statusText = 'TRENDING';
-                            statusClass = 'bg-[color:var(--md-sys-color-yellow-container)] text-[color:var(--md-sys-color-on-yellow-container)]';
-                          }
-
-                          return (
-                            <tr key={content.id} className="hover:bg-[color:var(--md-sys-color-surface-container-low)]/50 transition-colors">
-                              <td className="py-3.5 font-medium text-[color:var(--md-sys-color-on-surface-variant)]">{dateStr}</td>
-                              <td className="py-3.5 font-bold text-[color:var(--md-sys-color-on-surface)] max-w-xs truncate">{content.title}</td>
-                              <td className="py-3.5">
-                                <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold tracking-wide ${statusClass}`}>
-                                  {statusText}
-                                </span>
-                              </td>
-                              <td className="py-3.5 font-bold text-[color:var(--md-sys-color-on-surface)] text-right">{fmtFull(totalViews)}</td>
-                            </tr>
-                          );
-                        })
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-
-                <button 
-                  onClick={() => onSelectView && onSelectView('folder', selectedYear, selectedMonth)}
-                  className="w-full text-center py-2.5 text-xs font-semibold text-[color:var(--md-sys-color-primary)] hover:underline border-t border-[color:var(--md-sys-color-outline-variant)] mt-4 block cursor-pointer"
-                >
-                  Load more contents
-                </button>
-              </div>
-
-              {/* Upload Activity */}
-              <div className="bg-[color:var(--md-sys-color-surface)] border border-[color:var(--md-sys-color-outline-variant)] rounded-2xl p-6 shadow-[var(--md-elevation-1)]">
-                <h3 className="text-base font-bold text-[color:var(--md-sys-color-on-surface)] mb-4">
-                  Upload Activity
+              {/* Calendar */}
+              <div>
+                <h3 className="text-[12px] font-semibold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider mb-3 border-b border-[color:var(--md-sys-color-outline-variant)] pb-1.5">
+                  Upload Activity - {MONTH_NAMES[selectedMonth]} {selectedYear}
                 </h3>
                 <CalendarWidget
                   year={selectedYear}

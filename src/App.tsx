@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { AlertTriangle, Sparkles, Search, Bell, HelpCircle } from 'lucide-react';
+import { AlertTriangle, Sparkles } from 'lucide-react';
 import { useAppState } from './hooks/useAppState';
 import { MacSidebar } from './components/MacSidebar';
 import { DashboardView } from './components/DashboardView';
@@ -626,70 +626,31 @@ PENTING - Ikuti Kriteria Output Berikut:
         onUpdateApiKeyModel={handleUpdateApiKeyModel}
       />
 
-      {/* 2. Right Pane content routing with Universal Top Header Bar */}
-      <div className="flex-1 flex flex-col h-screen overflow-hidden">
-        {/* Universal Top Header Bar */}
-        <div className="h-14 flex items-center justify-between px-8 bg-[color:var(--md-sys-color-surface)] border-b border-[color:var(--md-sys-color-outline-variant)] shrink-0 select-none">
-          <div className="flex items-center gap-4 flex-1">
-            <span className="text-[13px] font-bold text-[color:var(--md-sys-color-on-surface)] uppercase tracking-wider font-sans">
-              Analytics Engine
-            </span>
-            <div className="relative max-w-xs w-full hidden sm:block">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[color:var(--md-sys-color-on-surface-variant)]" />
-              <input
-                type="text"
-                placeholder="Search data points..."
-                className="w-full bg-[color:var(--md-sys-color-surface-container-low)] text-[color:var(--md-sys-color-on-surface)] pl-9 pr-4 py-1.5 rounded-full text-xs border border-[color:var(--md-sys-color-outline-variant)] focus:outline-none focus:border-[color:var(--md-sys-color-primary)] placeholder-[color:var(--md-sys-color-on-surface-variant)]/60"
-              />
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={() => setIsAiAssistantOpen(true)}
-              className="relative p-1.5 rounded-full hover:bg-[color:var(--md-sys-color-surface-container-high)] text-[color:var(--md-sys-color-on-surface-variant)] hover:text-[color:var(--md-sys-color-on-surface)] transition-all cursor-pointer"
-              title="Notifikasi As-Istent AI"
-            >
-              <Bell size={16} />
-              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[color:var(--md-sys-color-primary)]" />
-            </button>
-            <button className="p-1.5 rounded-full hover:bg-[color:var(--md-sys-color-surface-container-high)] text-[color:var(--md-sys-color-on-surface-variant)] hover:text-[color:var(--md-sys-color-on-surface)] transition-all cursor-pointer">
-              <HelpCircle size={16} />
-            </button>
-            <div className="w-8 h-8 rounded-full bg-[color:var(--md-sys-color-primary-container)] text-[color:var(--md-sys-color-primary)] flex items-center justify-center font-bold text-xs select-none">
-              AV
-            </div>
-          </div>
-        </div>
-
-        {/* Routed views content container */}
-        <div className="flex-1 overflow-hidden flex flex-col">
-          {activeView === 'folder' ? (
-            <MonthFolderView
-              year={selectedYear}
-              monthIndex={selectedMonth}
-              contents={folders[selectedYear]?.[selectedMonth] || []}
-              onAddContentClick={handleOpenAddPopup}
-              onEditContentClick={handleOpenEditPopup}
-              onDeleteContent={setContentToDeleteId} // Triggers custom deletion modal!
-              onGenerateReportClick={handleGenerateReport}
-            />
-          ) : (
-            <DashboardView
-              folders={folders}
-              profiles={profiles}
-              activeView={activeView}
-              selectedYear={selectedYear}
-              selectedMonth={selectedMonth}
-              onSelectMonth={setSelectedMonth}
-              onSelectYear={setSelectedYear}
-              years={years}
-              isDarkMode={isDarkMode}
-              onGenerateReportClick={handleGenerateReport}
-              onSelectView={handleSelectView}
-            />
-          )}
-        </div>
-      </div>
+      {/* 2. Right Pane content routing */}
+      {activeView === 'folder' ? (
+        <MonthFolderView
+          year={selectedYear}
+          monthIndex={selectedMonth}
+          contents={folders[selectedYear]?.[selectedMonth] || []}
+          onAddContentClick={handleOpenAddPopup}
+          onEditContentClick={handleOpenEditPopup}
+          onDeleteContent={setContentToDeleteId} // Triggers custom deletion modal!
+          onGenerateReportClick={handleGenerateReport}
+        />
+      ) : (
+        <DashboardView
+          folders={folders}
+          profiles={profiles}
+          activeView={activeView}
+          selectedYear={selectedYear}
+          selectedMonth={selectedMonth}
+          onSelectMonth={setSelectedMonth}
+          onSelectYear={setSelectedYear}
+          years={years}
+          isDarkMode={isDarkMode}
+          onGenerateReportClick={handleGenerateReport}
+        />
+      )}
 
       {/* 3. Popup Overlay Form */}
       <ContentPopup

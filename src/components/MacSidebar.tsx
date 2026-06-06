@@ -15,8 +15,7 @@ import {
   Upload,
   Sun,
   Moon,
-  Settings,
-  Sparkles
+  Settings
 } from 'lucide-react';
 import { ApiKeyConfig, PlatformProfiles, PlatformType } from '../types';
 import { MONTH_NAMES } from '../utils/initialState';
@@ -226,17 +225,12 @@ export const MacSidebar: React.FC<MacSidebarProps> = React.memo(({
     >
       {/* ─── Header ─────────────────── */}
       <div className={`h-14 flex items-center shrink-0 ${isCollapsed ? 'justify-center px-0' : 'justify-between px-4 gap-3'}`}>
-        <div className={`flex flex-col text-left transition-[max-width,opacity] duration-300 ease-[cubic-bezier(0.2,0,0,1)] whitespace-nowrap overflow-hidden ${isCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[170px] opacity-100'}`}>
-          <span
-            className="text-[14px] font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)] leading-tight"
-            style={{ fontFamily: "'Google Sans Display', sans-serif" }}
-          >
-            As-Wrapped
-          </span>
-          <span className="text-[9px] text-[color:var(--md-sys-color-on-surface-variant)] tracking-wider uppercase font-semibold leading-none mt-0.5">
-            Creator Tier
-          </span>
-        </div>
+        <span
+          className={`text-[15px] font-semibold tracking-tight text-[color:var(--md-sys-color-on-surface)] truncate transition-[max-width,opacity] duration-300 ease-[cubic-bezier(0.2,0,0,1)] whitespace-nowrap overflow-hidden ${isCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[150px] opacity-100'}`}
+          style={{ fontFamily: "'Google Sans Display', sans-serif", willChange: 'max-width, opacity' }}
+        >
+          As-Wrapped Tracker
+        </span>
         <button
           onClick={onToggleCollapse}
           className="md-icon-btn-sm shrink-0"
@@ -433,37 +427,6 @@ export const MacSidebar: React.FC<MacSidebarProps> = React.memo(({
             );
           })}
         </div>
-      </div>
-
-      {/* ─── Premium Call to Action (Upgrade Plan visual style) ─── */}
-      <div className="shrink-0 flex flex-col pt-2">
-        {!isCollapsed ? (
-          <div className="mx-3 mb-4 p-3.5 bg-black text-white rounded-2xl flex flex-col items-center gap-2 select-none relative overflow-hidden shadow-sm">
-            <span className="text-[10px] font-bold tracking-wider uppercase text-gray-400">Premium Growth</span>
-            <span className="text-[12px] font-bold text-center leading-tight">Unlock AI Strategy</span>
-            <button 
-              onClick={() => {
-                // Triggers AI Assistant opening!
-                const activeDrawerBtn = document.querySelector('[title="Buka Asisten AI"]') as HTMLButtonElement;
-                if (activeDrawerBtn) activeDrawerBtn.click();
-              }}
-              className="mt-1 w-full bg-white text-black hover:bg-gray-100 text-[11px] font-semibold py-1.5 px-3 rounded-xl transition-all duration-150 cursor-pointer shadow-sm text-center"
-            >
-              Open As-Istent AI
-            </button>
-          </div>
-        ) : (
-          <button 
-            onClick={() => {
-              const activeDrawerBtn = document.querySelector('[title="Buka Asisten AI"]') as HTMLButtonElement;
-              if (activeDrawerBtn) activeDrawerBtn.click();
-            }}
-            className="w-11 h-11 mb-4 rounded-xl bg-black text-white flex items-center justify-center self-center hover:scale-105 transition-all shadow-sm cursor-pointer"
-            title="Open As-Istent AI"
-          >
-            <Sparkles size={16} className="text-yellow-400" />
-          </button>
-        )}
       </div>
 
       {/* ─── Bottom: System Actions ───── */}
