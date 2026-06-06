@@ -1,5 +1,6 @@
 import React from 'react';
 import { X, Check, Loader2, AlertCircle } from 'lucide-react';
+import { M3Dialog } from './M3Dialog';
 
 interface ProgressStep {
   label: string;
@@ -23,8 +24,6 @@ export const ReportProgressModal: React.FC<ReportProgressModalProps> = ({
   errorMessage,
   provider
 }) => {
-  if (!isOpen) return null;
-
   const providerLabel = provider === 'huggingface' ? 'Hugging Face' : 'Gemini';
   const steps: ProgressStep[] = [
     { label: 'Mengompilasi Data', description: 'Memfilter dan mempersiapkan metrik konten.' },
@@ -34,13 +33,8 @@ export const ReportProgressModal: React.FC<ReportProgressModalProps> = ({
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 mac-backdrop md-backdrop-enter">
-      <div className="
-        bg-[color:var(--md-sys-color-surface)]
-        border border-[color:var(--md-sys-color-outline-variant)]
-        rounded-3xl shadow-[var(--md-elevation-3)]
-        w-full max-w-[420px] flex flex-col p-6 select-none md-dialog-enter
-      ">
+    <M3Dialog isOpen={isOpen} onClose={onClose} maxWidthClass="max-w-[420px]">
+      <div className="flex flex-col w-full">
         {/* Header */}
         <div className="flex items-start justify-between gap-4 mb-6">
           <div>
@@ -131,6 +125,6 @@ export const ReportProgressModal: React.FC<ReportProgressModalProps> = ({
           </div>
         )}
       </div>
-    </div>
+    </M3Dialog>
   );
 };

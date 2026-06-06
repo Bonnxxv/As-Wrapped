@@ -1,5 +1,4 @@
 import React, { useState, useRef } from 'react';
-import { createPortal } from 'react-dom';
 import { 
   LayoutDashboard,
   Folder, 
@@ -21,6 +20,7 @@ import {
 import { ApiKeyConfig, PlatformProfiles, PlatformType } from '../types';
 import { MONTH_NAMES } from '../utils/initialState';
 import { MacDropdown } from './MacDropdown';
+import { M3Dialog } from './M3Dialog';
 
 interface MacSidebarProps {
   years: number[];
@@ -87,46 +87,7 @@ export const InstagramIcon = ({ size = 16, className = "" }: { size?: number; cl
   );
 };
 
-/* ─── Small Dialog wrapper with M3 animation ─── */
-interface SmallDialogProps {
-  show: boolean;
-  onClose: () => void;
-  children: React.ReactNode;
-}
-const SmallDialog: React.FC<SmallDialogProps> = ({ show, onClose, children }) => {
-  const [rendered, setRendered] = useState(false);
-  const [animClass, setAnimClass] = useState('');
 
-  React.useEffect(() => {
-    let t: any;
-    if (show) {
-      setRendered(true);
-      t = setTimeout(() => setAnimClass('md-dialog-enter'), 16);
-    } else {
-      setAnimClass('md-dialog-exit');
-      t = setTimeout(() => { setRendered(false); setAnimClass(''); }, 200);
-    }
-    return () => clearTimeout(t);
-  }, [show]);
-
-  if (!rendered) return null;
-
-  return createPortal(
-    <div
-      className={`fixed inset-0 z-50 flex items-center justify-center p-4 mac-backdrop ${show ? 'md-backdrop-enter' : 'md-backdrop-exit'}`}
-      onClick={onClose}
-    >
-      <div
-        className={animClass}
-        style={{ willChange: 'transform, opacity' }}
-        onClick={e => e.stopPropagation()}
-      >
-        {children}
-      </div>
-    </div>,
-    document.body
-  );
-};
 
 export const MacSidebar: React.FC<MacSidebarProps> = React.memo(({
   years,
@@ -255,17 +216,18 @@ export const MacSidebar: React.FC<MacSidebarProps> = React.memo(({
 
   return (
     <div
-      className={`flex flex-col h-screen select-none relative z-10 transition-[width] duration-300 shrink-0
+      className={`flex flex-col h-screen select-none relative z-10 transition-[width] duration-300 ease-[cubic-bezier(0.2,0,0,1)] shrink-0
         bg-[color:var(--md-sys-color-surface-container)]
         border-r border-[color:var(--md-sys-color-outline-variant)]
         ${isCollapsed ? 'w-[64px]' : 'w-[240px]'}
       `}
+      style={{ willChange: 'width' }}
     >
       {/* ─── Header ─────────────────── */}
       <div className={`h-14 flex items-center shrink-0 ${isCollapsed ? 'justify-center px-0' : 'justify-between px-4 gap-3'}`}>
         <span
-          className={`text-[15px] font-semibold tracking-tight text-[color:var(--md-sys-color-on-surface)] truncate transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden ${isCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[150px] opacity-100'}`}
-          style={{ fontFamily: "'Google Sans Display', sans-serif" }}
+          className={`text-[15px] font-semibold tracking-tight text-[color:var(--md-sys-color-on-surface)] truncate transition-[max-width,opacity] duration-300 ease-[cubic-bezier(0.2,0,0,1)] whitespace-nowrap overflow-hidden ${isCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[150px] opacity-100'}`}
+          style={{ fontFamily: "'Google Sans Display', sans-serif", willChange: 'max-width, opacity' }}
         >
           As-Wrapped Tracker
         </span>
@@ -292,7 +254,10 @@ export const MacSidebar: React.FC<MacSidebarProps> = React.memo(({
             title={isCollapsed ? "Dashboard" : undefined}
           >
             <LayoutDashboard size={18} className="shrink-0" />
-            <span className={`text-[13px] font-medium transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden ${isCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[150px] opacity-100'}`}>
+            <span
+              className={`text-[13px] font-medium transition-[max-width,opacity] duration-300 ease-[cubic-bezier(0.2,0,0,1)] whitespace-nowrap overflow-hidden ${isCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[150px] opacity-100'}`}
+              style={{ willChange: 'max-width, opacity' }}
+            >
               Dashboard
             </span>
           </button>
@@ -304,7 +269,10 @@ export const MacSidebar: React.FC<MacSidebarProps> = React.memo(({
 
         {/* Accounts */}
         <div className="flex flex-col gap-0.5">
-          <div className={`${sectionLabel} transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden ${isCollapsed ? 'max-w-0 opacity-0 py-0 my-0 h-0 pointer-events-none' : 'max-w-[150px] opacity-100'}`}>
+          <div
+            className={`${sectionLabel} transition-[max-width,opacity,margin,padding] duration-300 ease-[cubic-bezier(0.2,0,0,1)] whitespace-nowrap overflow-hidden ${isCollapsed ? 'max-w-0 opacity-0 py-0 my-0 h-0 pointer-events-none' : 'max-w-[150px] opacity-100'}`}
+            style={{ willChange: 'max-width, opacity' }}
+          >
             Accounts
           </div>
 
@@ -316,17 +284,21 @@ export const MacSidebar: React.FC<MacSidebarProps> = React.memo(({
               title={isCollapsed ? `Instagram (${profiles.instagram.username})` : undefined}
             >
               <InstagramIcon size={18} className="shrink-0" />
-              <span className={`text-[13px] font-medium flex-1 truncate transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden ${isCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[150px] opacity-100'}`}>
+              <span
+                className={`text-[13px] font-medium flex-1 truncate transition-[max-width,opacity] duration-300 ease-[cubic-bezier(0.2,0,0,1)] whitespace-nowrap overflow-hidden ${isCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[150px] opacity-100'}`}
+                style={{ willChange: 'max-width, opacity' }}
+              >
                 {profiles.instagram.username}
               </span>
             </button>
             <button
               onClick={(e) => { e.stopPropagation(); openEditProfile('instagram'); }}
-              className={`absolute right-2 top-1/2 -translate-y-1/2 md-icon-btn-sm transition-all duration-300 ease-in-out
+              className={`absolute right-2 top-1/2 -translate-y-1/2 md-icon-btn-sm transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.2,0,0,1)]
                 ${isCollapsed ? 'opacity-0 scale-50 pointer-events-none' : 'group-hover:opacity-100 opacity-0'}
                 ${activeView === 'instagram'
                   ? 'text-[color:var(--md-sys-color-on-error-container)] hover:bg-[color:var(--md-sys-color-error)]/10'
                   : 'text-[color:var(--md-sys-color-on-surface-variant)] hover:bg-[color:var(--md-sys-color-surface-variant)] hover:text-[color:var(--md-sys-color-on-surface)]'}`}
+              style={{ willChange: 'opacity, transform' }}
               title="Edit Profile"
             >
               <Edit size={14} />
@@ -341,17 +313,21 @@ export const MacSidebar: React.FC<MacSidebarProps> = React.memo(({
               title={isCollapsed ? `TikTok (${profiles.tiktok.username})` : undefined}
             >
               <TikTokIcon size={18} className="shrink-0" />
-              <span className={`text-[13px] font-medium flex-1 truncate transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden ${isCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[150px] opacity-100'}`}>
+              <span
+                className={`text-[13px] font-medium flex-1 truncate transition-[max-width,opacity] duration-300 ease-[cubic-bezier(0.2,0,0,1)] whitespace-nowrap overflow-hidden ${isCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[150px] opacity-100'}`}
+                style={{ willChange: 'max-width, opacity' }}
+              >
                 {profiles.tiktok.username}
               </span>
             </button>
             <button
               onClick={(e) => { e.stopPropagation(); openEditProfile('tiktok'); }}
-              className={`absolute right-2 top-1/2 -translate-y-1/2 md-icon-btn-sm transition-all duration-300 ease-in-out
+              className={`absolute right-2 top-1/2 -translate-y-1/2 md-icon-btn-sm transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.2,0,0,1)]
                 ${isCollapsed ? 'opacity-0 scale-50 pointer-events-none' : 'group-hover:opacity-100 opacity-0'}
                 ${activeView === 'tiktok'
                   ? 'text-[color:var(--md-sys-color-on-cyan-container)] hover:bg-[color:var(--md-sys-color-cyan)]/10'
                   : 'text-[color:var(--md-sys-color-on-surface-variant)] hover:bg-[color:var(--md-sys-color-surface-variant)] hover:text-[color:var(--md-sys-color-on-surface)]'}`}
+              style={{ willChange: 'opacity, transform' }}
               title="Edit Profile"
             >
               <Edit size={14} />
@@ -398,27 +374,34 @@ export const MacSidebar: React.FC<MacSidebarProps> = React.memo(({
                     className={`${isCollapsed ? navItemCollapsed : navItemExpanded} ${navItemDefault} w-full`}
                     title={isCollapsed ? `Folder ${year}` : undefined}
                   >
-                    <span className={`text-[color:var(--md-sys-color-on-surface-variant)] shrink-0 transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden ${isCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[20px] opacity-100 mr-1'}`}>
+                    <span
+                      className={`text-[color:var(--md-sys-color-on-surface-variant)] shrink-0 transition-[max-width,opacity] duration-300 ease-[cubic-bezier(0.2,0,0,1)] whitespace-nowrap overflow-hidden ${isCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[20px] opacity-100 mr-1'}`}
+                      style={{ willChange: 'max-width, opacity' }}
+                    >
                       {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                     </span>
                     <span className="text-[color:var(--md-sys-color-yellow,var(--md-sys-color-primary))] shrink-0">
                       {isOpen && !isCollapsed ? <FolderOpen size={16} /> : <Folder size={16} />}
                     </span>
-                    <span className={`text-[13px] font-medium transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden ${isCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[150px] opacity-100'}`}>
+                    <span
+                      className={`text-[13px] font-medium transition-[max-width,opacity] duration-300 ease-[cubic-bezier(0.2,0,0,1)] whitespace-nowrap overflow-hidden ${isCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[150px] opacity-100'}`}
+                      style={{ willChange: 'max-width, opacity' }}
+                    >
                       {year}
                     </span>
                   </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); onDeleteYear(year); }}
-                    className={`absolute right-2 top-1/2 -translate-y-1/2 md-icon-btn-sm transition-all duration-300 ease-in-out ${isCollapsed ? 'opacity-0 scale-50 pointer-events-none' : 'group-hover:opacity-100 opacity-0'} hover:text-red-500`}
+                    className={`absolute right-2 top-1/2 -translate-y-1/2 md-icon-btn-sm transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.2,0,0,1)] ${isCollapsed ? 'opacity-0 scale-50 pointer-events-none' : 'group-hover:opacity-100 opacity-0'} hover:text-red-500`}
+                    style={{ willChange: 'opacity, transform' }}
                     title="Delete Year"
                   >
                     <Trash2 size={14} />
                   </button>
                 </div>
 
-                {/* Month sub-items */}
-                {isOpen && !isCollapsed && (
+                {/* Month sub-items using hardware-accelerated grid transition */}
+                <div className={`sidebar-submenu-grid ${isOpen && !isCollapsed ? 'expanded' : ''}`}>
                   <div className="pl-6 flex flex-col gap-0.5 mt-0.5">
                     {MONTH_NAMES.map((mName, mIdx) => {
                       const isActive = activeView === 'folder' && selectedYear === year && selectedMonth === mIdx;
@@ -429,14 +412,17 @@ export const MacSidebar: React.FC<MacSidebarProps> = React.memo(({
                           className={`${navItemExpanded} ${isActive ? getActiveNavItemClass('folder') : navItemDefault} pl-3`}
                         >
                           <Folder size={14} className="shrink-0" />
-                          <span className={`text-[13px] font-medium truncate transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden ${isCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[150px] opacity-100'}`}>
+                          <span
+                            className={`text-[13px] font-medium truncate transition-[max-width,opacity] duration-300 ease-[cubic-bezier(0.2,0,0,1)] whitespace-nowrap overflow-hidden ${isCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[150px] opacity-100'}`}
+                            style={{ willChange: 'max-width, opacity' }}
+                          >
                             {mName}
                           </span>
                         </button>
                       );
                     })}
                   </div>
-                )}
+                </div>
               </div>
             );
           })}
@@ -470,70 +456,81 @@ export const MacSidebar: React.FC<MacSidebarProps> = React.memo(({
           </button>
         )}
 
-        <div
-          className={`flex flex-col gap-2 transition-all duration-300 ease-in-out overflow-hidden
-            ${isSystemCollapsed ? 'max-h-0 opacity-0 pointer-events-none' : 'max-h-[260px] opacity-100 mt-2'}`}
-        >
-          <button
-            onClick={onToggleTheme}
-            className={`flex items-center justify-center transition-all duration-300 shrink-0 select-none cursor-pointer overflow-hidden
-              ${isCollapsed
-                ? 'w-11 h-11 rounded-full md-icon-btn self-center'
-                : 'gai-btn-outlined w-full h-11 px-4 rounded-xl text-sm gap-2'
-              }`}
-            title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
-          >
-            {isDarkMode ? <Sun size={14} className="shrink-0" /> : <Moon size={14} className="shrink-0" />}
-            <span className={`transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden ${isCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[150px] opacity-100'}`}>
-              {isDarkMode ? "Switch to Light" : "Switch to Dark"}
-            </span>
-          </button>
+        <div className={`sidebar-submenu-grid ${isSystemCollapsed ? '' : 'expanded mt-2'}`}>
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={onToggleTheme}
+              className={`flex items-center justify-center transition-all duration-300 shrink-0 select-none cursor-pointer overflow-hidden
+                ${isCollapsed
+                  ? 'w-11 h-11 rounded-full md-icon-btn self-center'
+                  : 'gai-btn-outlined w-full h-11 px-4 rounded-xl text-sm gap-2'
+                }`}
+              title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            >
+              {isDarkMode ? <Sun size={14} className="shrink-0" /> : <Moon size={14} className="shrink-0" />}
+              <span
+                className={`transition-[max-width,opacity] duration-300 ease-[cubic-bezier(0.2,0,0,1)] whitespace-nowrap overflow-hidden ${isCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[150px] opacity-100'}`}
+                style={{ willChange: 'max-width, opacity' }}
+              >
+                {isDarkMode ? "Switch to Light" : "Switch to Dark"}
+              </span>
+            </button>
 
-          <button
-            onClick={openSettingsDialog}
-            className={`flex items-center justify-center transition-all duration-300 shrink-0 select-none cursor-pointer overflow-hidden
-              ${isCollapsed
-                ? 'w-11 h-11 rounded-full md-icon-btn self-center'
-                : 'gai-btn-outlined w-full h-11 px-4 rounded-xl text-sm gap-2'
-              }`}
-            title={isCollapsed ? "Setelan API" : "Setelan Gemini API"}
-          >
-            <Settings size={14} className="shrink-0" />
-            <span className={`transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden ${isCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[150px] opacity-100'}`}>
-              Setelan API
-            </span>
-          </button>
+            <button
+              onClick={openSettingsDialog}
+              className={`flex items-center justify-center transition-all duration-300 shrink-0 select-none cursor-pointer overflow-hidden
+                ${isCollapsed
+                  ? 'w-11 h-11 rounded-full md-icon-btn self-center'
+                  : 'gai-btn-outlined w-full h-11 px-4 rounded-xl text-sm gap-2'
+                }`}
+              title={isCollapsed ? "Setelan API" : "Setelan Gemini API"}
+            >
+              <Settings size={14} className="shrink-0" />
+              <span
+                className={`transition-[max-width,opacity] duration-300 ease-[cubic-bezier(0.2,0,0,1)] whitespace-nowrap overflow-hidden ${isCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[150px] opacity-100'}`}
+                style={{ willChange: 'max-width, opacity' }}
+              >
+                Setelan API
+              </span>
+            </button>
 
-          <button
-            onClick={onExportData}
-            className={`flex items-center justify-center transition-all duration-300 shrink-0 select-none cursor-pointer overflow-hidden
-              ${isCollapsed
-                ? 'w-11 h-11 rounded-full md-icon-btn self-center'
-                : 'gai-btn-outlined w-full h-11 px-4 rounded-xl text-sm gap-2'
-              }`}
-            title={isCollapsed ? "Export Backup" : "Export data ke JSON"}
-          >
-            <Upload size={14} className="shrink-0" />
-            <span className={`transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden ${isCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[150px] opacity-100'}`}>
-              Export
-            </span>
-          </button>
+            <button
+              onClick={onExportData}
+              className={`flex items-center justify-center transition-all duration-300 shrink-0 select-none cursor-pointer overflow-hidden
+                ${isCollapsed
+                  ? 'w-11 h-11 rounded-full md-icon-btn self-center'
+                  : 'gai-btn-outlined w-full h-11 px-4 rounded-xl text-sm gap-2'
+                }`}
+              title={isCollapsed ? "Export Backup" : "Export data ke JSON"}
+            >
+              <Upload size={14} className="shrink-0" />
+              <span
+                className={`transition-[max-width,opacity] duration-300 ease-[cubic-bezier(0.2,0,0,1)] whitespace-nowrap overflow-hidden ${isCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[150px] opacity-100'}`}
+                style={{ willChange: 'max-width, opacity' }}
+              >
+                Export
+              </span>
+            </button>
 
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className={`flex items-center justify-center transition-all duration-300 shrink-0 select-none cursor-pointer overflow-hidden
-              ${isCollapsed
-                ? 'w-11 h-11 rounded-full md-icon-btn self-center'
-                : 'gai-btn-tonal w-full h-11 px-4 rounded-xl text-sm gap-2'
-              }`}
-            style={isCollapsed ? undefined : { border: '1px solid var(--md-sys-color-outline)' }}
-            title={isCollapsed ? "Import Backup" : "Import dari file JSON"}
-          >
-            <Download size={14} className="shrink-0" />
-            <span className={`transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden ${isCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[150px] opacity-100'}`}>
-              Import
-            </span>
-          </button>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className={`flex items-center justify-center transition-all duration-300 shrink-0 select-none cursor-pointer overflow-hidden
+                ${isCollapsed
+                  ? 'w-11 h-11 rounded-full md-icon-btn self-center'
+                  : 'gai-btn-tonal w-full h-11 px-4 rounded-xl text-sm gap-2'
+                }`}
+              style={isCollapsed ? undefined : { border: '1px solid var(--md-sys-color-outline)', willChange: 'max-width, opacity' }}
+              title={isCollapsed ? "Import Backup" : "Import dari file JSON"}
+            >
+              <Download size={14} className="shrink-0" />
+              <span
+                className={`transition-[max-width,opacity] duration-300 ease-[cubic-bezier(0.2,0,0,1)] whitespace-nowrap overflow-hidden ${isCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[150px] opacity-100'}`}
+                style={{ willChange: 'max-width, opacity' }}
+              >
+                Import
+              </span>
+            </button>
+          </div>
         </div>
 
         <input
@@ -546,16 +543,8 @@ export const MacSidebar: React.FC<MacSidebarProps> = React.memo(({
       </div>
 
       {/* ══ Dialog: Add Year ══════════════════ */}
-      <SmallDialog show={isAddingYear} onClose={() => setIsAddingYear(false)}>
-        <form
-          onSubmit={handleAddYearSubmit}
-          className="
-            bg-[color:var(--md-sys-color-surface)]
-            border border-[color:var(--md-sys-color-outline-variant)]
-            rounded-3xl shadow-[var(--md-elevation-3)]
-            w-[280px] flex flex-col gap-6 p-6 select-none
-          "
-        >
+      <M3Dialog isOpen={isAddingYear} onClose={() => setIsAddingYear(false)} maxWidthClass="max-w-[280px]">
+        <form onSubmit={handleAddYearSubmit} className="flex flex-col gap-6 w-full">
           {/* Dialog Header */}
           <div className="flex items-start justify-between gap-4">
             <div>
@@ -590,19 +579,11 @@ export const MacSidebar: React.FC<MacSidebarProps> = React.memo(({
             <button type="submit" className="gai-btn-filled">Create</button>
           </div>
         </form>
-      </SmallDialog>
+      </M3Dialog>
 
       {/* ══ Dialog: Edit Profile ══════════════ */}
-      <SmallDialog show={!!editingPlatform} onClose={() => setEditingPlatform(null)}>
-        <form
-          onSubmit={handleSaveProfile}
-          className="
-            bg-[color:var(--md-sys-color-surface)]
-            border border-[color:var(--md-sys-color-outline-variant)]
-            rounded-3xl shadow-[var(--md-elevation-3)]
-            w-[320px] flex flex-col gap-6 p-6 select-none
-          "
-        >
+      <M3Dialog isOpen={editingPlatform !== null} onClose={() => setEditingPlatform(null)} maxWidthClass="max-w-[320px]">
+        <form onSubmit={handleSaveProfile} className="flex flex-col gap-6 w-full">
           {/* Header */}
           <div className="flex items-start justify-between gap-4">
             <div>
@@ -659,18 +640,11 @@ export const MacSidebar: React.FC<MacSidebarProps> = React.memo(({
             <button type="submit" className="gai-btn-filled">Save</button>
           </div>
         </form>
-      </SmallDialog>
+      </M3Dialog>
 
       {/* ══ Dialog: Setelan API ══════════════ */}
-      <SmallDialog show={isEditingSettings} onClose={() => setIsEditingSettings(false)}>
-        <div
-          className="
-            bg-[color:var(--md-sys-color-surface)]
-            border border-[color:var(--md-sys-color-outline-variant)]
-            rounded-3xl shadow-[var(--md-elevation-3)]
-            w-[380px] flex flex-col gap-5 p-6 select-none
-          "
-        >
+      <M3Dialog isOpen={isEditingSettings} onClose={() => setIsEditingSettings(false)} maxWidthClass="max-w-[380px]">
+        <div className="flex flex-col gap-5 w-full">
           {/* Header */}
           <div className="flex items-start justify-between gap-4">
             <div>
@@ -826,7 +800,7 @@ export const MacSidebar: React.FC<MacSidebarProps> = React.memo(({
             </button>
           </div>
         </div>
-      </SmallDialog>
+      </M3Dialog>
 
     </div>
   );

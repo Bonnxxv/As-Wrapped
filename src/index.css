@@ -250,9 +250,24 @@ input[type=number] { -moz-appearance: textfield; }
 }
 
 /* Standard transitions */
-.md-transition-short  { transition: all var(--md-duration-short3) var(--md-easing-standard); }
-.md-transition-medium { transition: all var(--md-duration-medium2) var(--md-easing-standard); }
-.mac-transition       { transition: all var(--md-duration-short3) var(--md-easing-standard); }
+.md-transition-short  { transition: transform var(--md-duration-short3) var(--md-easing-standard), opacity var(--md-duration-short3) var(--md-easing-standard), background-color var(--md-duration-short3) var(--md-easing-standard), border-color var(--md-duration-short3) var(--md-easing-standard), box-shadow var(--md-duration-short3) var(--md-easing-standard); }
+.md-transition-medium { transition: transform var(--md-duration-medium2) var(--md-easing-standard), opacity var(--md-duration-medium2) var(--md-easing-standard), background-color var(--md-duration-medium2) var(--md-easing-standard), border-color var(--md-duration-medium2) var(--md-easing-standard), box-shadow var(--md-duration-medium2) var(--md-easing-standard); }
+.mac-transition       { transition: transform var(--md-duration-short3) var(--md-easing-standard), opacity var(--md-duration-short3) var(--md-easing-standard), background-color var(--md-duration-short3) var(--md-easing-standard), border-color var(--md-duration-short3) var(--md-easing-standard), box-shadow var(--md-duration-short3) var(--md-easing-standard); }
+
+/* Grid heights transitions for submenu/collapsible layouts (GPU accelerated) */
+.sidebar-submenu-grid {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--md-duration-medium2) var(--md-easing-standard);
+}
+.sidebar-submenu-grid.expanded {
+  grid-template-rows: 1fr;
+}
+.sidebar-submenu-grid > div {
+  overflow: hidden;
+  min-height: 0;
+}
+
 
 /* ══════════════════════════════════════════
    M3 DIALOG / MODAL ANIMATIONS

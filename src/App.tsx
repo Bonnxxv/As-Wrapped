@@ -6,6 +6,7 @@ import { DashboardView } from './components/DashboardView';
 import { MonthFolderView } from './components/MonthFolderView';
 import { ContentPopup } from './components/ContentPopup';
 import { ContentEntry, ApiKeyConfig } from './types';
+import { M3Dialog } from './components/M3Dialog';
 
 import { MONTH_NAMES } from './utils/initialState';
 import { jsPDF } from 'jspdf';
@@ -53,6 +54,23 @@ function App() {
   // 2. Custom macOS Sequoia Deletion Warning States
   const [contentToDeleteId, setContentToDeleteId] = useState<string | null>(null);
   const [yearToDelete, setYearToDelete] = useState<number | null>(null);
+
+  // Cache to preserve info during M3Dialog fade out
+  const [lastContentToDeleteItem, setLastContentToDeleteItem] = useState<ContentEntry | null>(null);
+  const [lastYearToDelete, setLastYearToDelete] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (contentToDeleteId) {
+      const item = folders[selectedYear]?.[selectedMonth]?.find(c => c.id === contentToDeleteId);
+      if (item) setLastContentToDeleteItem(item);
+    }
+  }, [contentToDeleteId, folders, selectedYear, selectedMonth]);
+
+  useEffect(() => {
+    if (yearToDelete !== null) {
+      setLastYearToDelete(yearToDelete);
+    }
+  }, [yearToDelete]);
 
   // AI Assistant Chat Drawer State
   const [isAiAssistantOpen, setIsAiAssistantOpen] = useState(false);
@@ -645,87 +663,70 @@ PENTING - Ikuti Kriteria Output Berikut:
       />
 
       {/* 4. M3 Deletion Warning Dialog (Content) */}
-      {contentToDeleteId && (() => {
-        const item = folders[selectedYear]?.[selectedMonth]?.find(c => c.id === contentToDeleteId);
-        return (
-          <div className="fixed inset-0 z-50 mac-backdrop flex items-center justify-center p-4 md-backdrop-enter">
-            <div className="
-              bg-[color:var(--md-sys-color-surface)]
-              border border-[color:var(--md-sys-color-outline-variant)]
-              shadow-[var(--md-elevation-3)]
-              rounded-3xl p-6 max-w-[360px] w-full
-              flex flex-col gap-5 select-none
-              md-dialog-enter
-            ">
-              {/* Icon + Title */}
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-[color:var(--md-sys-color-error-container)] text-[color:var(--md-sys-color-on-error-container)] flex items-center justify-center shrink-0">
-                  <AlertTriangle size={20} />
-                </div>
-                <div>
-                  <h3 className="md-title-medium text-[color:var(--md-sys-color-on-surface)]">Delete Content?</h3>
-                  <p className="md-body-medium text-[color:var(--md-sys-color-on-surface-variant)] mt-1">
-                    Delete <span className="font-semibold text-[color:var(--md-sys-color-on-surface)]">&ldquo;{item?.title}&rdquo;</span> from {MONTH_NAMES[selectedMonth]} {selectedYear}? This cannot be undone.
-                  </p>
-                </div>
-              </div>
-              {/* Actions */}
-              <div className="flex gap-2 justify-end">
-                <button type="button" onClick={() => setContentToDeleteId(null)} className="gai-btn-text">
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={executeContentDeletion}
-                  className="gai-btn-filled"
-                  style={{ backgroundColor: 'var(--md-sys-color-error)', color: 'var(--md-sys-color-on-error)' }}
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
+      <M3Dialog
+        isOpen={contentToDeleteId !== null}
+        onClose={() => setContentToDeleteId(null)}
+        maxWidthClass="max-w-[360px]"
+      >
+        {/* Icon + Title */}
+        <div className="flex items-start gap-4 text-left">
+          <div className="w-10 h-10 rounded-full bg-[color:var(--md-sys-color-error-container)] text-[color:var(--md-sys-color-on-error-container)] flex items-center justify-center shrink-0">
+            <AlertTriangle size={20} />
           </div>
-        );
-      })()}
-
-      {/* 5. M3 Deletion Warning Dialog (Year) */}
-      {yearToDelete !== null && (
-        <div className="fixed inset-0 z-50 mac-backdrop flex items-center justify-center p-4 md-backdrop-enter">
-          <div className="
-            bg-[color:var(--md-sys-color-surface)]
-            border border-[color:var(--md-sys-color-outline-variant)]
-            shadow-[var(--md-elevation-3)]
-            rounded-3xl p-6 max-w-[360px] w-full
-            flex flex-col gap-5 select-none
-            md-dialog-enter
-          ">
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-full bg-[color:var(--md-sys-color-error-container)] text-[color:var(--md-sys-color-on-error-container)] flex items-center justify-center shrink-0">
-                <AlertTriangle size={20} />
-              </div>
-              <div>
-                <h3 className="md-title-medium text-[color:var(--md-sys-color-on-surface)]">Delete Folder?</h3>
-                <p className="md-body-medium text-[color:var(--md-sys-color-on-surface-variant)] mt-1">
-                  Deleting the <span className="font-semibold text-[color:var(--md-sys-color-on-surface)]">{yearToDelete}</span> folder will permanently remove all its content.
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-2 justify-end">
-              <button type="button" onClick={() => setYearToDelete(null)} className="gai-btn-text">
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={executeYearDeletion}
-                className="gai-btn-filled"
-                style={{ backgroundColor: 'var(--md-sys-color-error)', color: 'var(--md-sys-color-on-error)' }}
-              >
-                Delete
-              </button>
-            </div>
+          <div>
+            <h3 className="md-title-medium text-[color:var(--md-sys-color-on-surface)]">Delete Content?</h3>
+            <p className="md-body-medium text-[color:var(--md-sys-color-on-surface-variant)] mt-1">
+              Delete <span className="font-semibold text-[color:var(--md-sys-color-on-surface)]">&ldquo;{lastContentToDeleteItem?.title || ''}&rdquo;</span> from {MONTH_NAMES[selectedMonth]} {selectedYear}? This cannot be undone.
+            </p>
           </div>
         </div>
-      )}
+        {/* Actions */}
+        <div className="flex gap-2 justify-end">
+          <button type="button" onClick={() => setContentToDeleteId(null)} className="gai-btn-text">
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={executeContentDeletion}
+            className="gai-btn-filled"
+            style={{ backgroundColor: 'var(--md-sys-color-error)', color: 'var(--md-sys-color-on-error)' }}
+          >
+            Delete
+          </button>
+        </div>
+      </M3Dialog>
+
+      {/* 5. M3 Deletion Warning Dialog (Year) */}
+      <M3Dialog
+        isOpen={yearToDelete !== null}
+        onClose={() => setYearToDelete(null)}
+        maxWidthClass="max-w-[360px]"
+      >
+        <div className="flex items-start gap-4 text-left">
+          <div className="w-10 h-10 rounded-full bg-[color:var(--md-sys-color-error-container)] text-[color:var(--md-sys-color-on-error-container)] flex items-center justify-center shrink-0">
+            <AlertTriangle size={20} />
+          </div>
+          <div>
+            <h3 className="md-title-medium text-[color:var(--md-sys-color-on-surface)]">Delete Folder?</h3>
+            <p className="md-body-medium text-[color:var(--md-sys-color-on-surface-variant)] mt-1">
+              Deleting the <span className="font-semibold text-[color:var(--md-sys-color-on-surface)]">{lastYearToDelete}</span> folder will permanently remove all its content.
+            </p>
+          </div>
+        </div>
+        <div className="flex gap-2 justify-end">
+          <button type="button" onClick={() => setYearToDelete(null)} className="gai-btn-text">
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={executeYearDeletion}
+            className="gai-btn-filled"
+            style={{ backgroundColor: 'var(--md-sys-color-error)', color: 'var(--md-sys-color-on-error)' }}
+          >
+            Delete
+          </button>
+        </div>
+      </M3Dialog>
 
       {/* 6. M3 Snackbar Notification */}
       {notification && (
@@ -790,6 +791,7 @@ PENTING - Ikuti Kriteria Output Berikut:
         selectedYear={selectedYear}
         selectedMonth={selectedMonth}
         activeApiKey={apiKeys.find(k => k.id === activeApiKeyId) || apiKeys[0]}
+        folders={folders}
       />
 
       <ReportProgressModal

@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Sparkles, Send, X, Trash2, ArrowRight, ArrowLeft, Copy, Check } from 'lucide-react';
+import { Sparkles, Send, X, Trash2, ArrowRight, ArrowLeft, Copy, Check, AlertTriangle } from 'lucide-react';
 import { PlatformProfiles, FolderDataState, ApiKeyConfig } from '../types';
 import { ChatMessage, prepareChatContext, sendAiChatMessage } from '../utils/aiChatService';
 import { simplifyModelName } from '../utils/geminiService';
+import { M3Dialog } from './M3Dialog';
 
 interface ChatSession {
   id: string;
@@ -47,6 +48,10 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [activeScreen, setActiveScreen] = useState<'welcome' | 'chat'>('welcome');
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+
+  // States for custom deletion modals
+  const [sessionToDeleteId, setSessionToDeleteId] = useState<string | null>(null);
+  const [isClearingCurrentChat, setIsClearingCurrentChat] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -197,38 +202,49 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
   };
 
   // Hapus sesi aktif dari header
-  const handleClearChat = () => {
-    if (window.confirm('Hapus obrolan ini dari histori?')) {
-      if (activeSessionId) {
-        setSessions(prev => {
-          const updated = prev.filter(s => s.id !== activeSessionId);
-          localStorage.setItem('aswrapped_chat_sessions', JSON.stringify(updated));
-          return updated;
-        });
-      }
+  // Pemicu konfirmasi hapus sesi aktif
+  const triggerClearChat = () => {
+    setIsClearingCurrentChat(true);
+  };
+
+  // Eksekusi hapus sesi aktif
+  const executeClearChat = () => {
+    if (activeSessionId) {
+      setSessions(prev => {
+        const updated = prev.filter(s => s.id !== activeSessionId);
+        localStorage.setItem('aswrapped_chat_sessions', JSON.stringify(updated));
+        return updated;
+      });
+    }
+    setMessages([]);
+    setActiveSessionId(null);
+    localStorage.removeItem('aswrapped_active_session_id');
+    setActiveScreen('welcome');
+    setError(null);
+    setIsClearingCurrentChat(false);
+  };
+
+  // Pemicu konfirmasi hapus sesi spesifik
+  const triggerDeleteSession = (sessionId: string) => {
+    setSessionToDeleteId(sessionId);
+  };
+
+  // Eksekusi hapus sesi spesifik
+  const executeDeleteSession = () => {
+    if (!sessionToDeleteId) return;
+
+    setSessions(prev => {
+      const updated = prev.filter(s => s.id !== sessionToDeleteId);
+      localStorage.setItem('aswrapped_chat_sessions', JSON.stringify(updated));
+      return updated;
+    });
+    if (activeSessionId === sessionToDeleteId) {
       setMessages([]);
       setActiveSessionId(null);
       localStorage.removeItem('aswrapped_active_session_id');
       setActiveScreen('welcome');
-      setError(null);
     }
-  };
-
-  // Hapus sesi spesifik dari daftar halaman awal
-  const handleDeleteSession = (sessionId: string) => {
-    if (window.confirm('Hapus histori obrolan ini secara permanen?')) {
-      setSessions(prev => {
-        const updated = prev.filter(s => s.id !== sessionId);
-        localStorage.setItem('aswrapped_chat_sessions', JSON.stringify(updated));
-        return updated;
-      });
-      if (activeSessionId === sessionId) {
-        setMessages([]);
-        setActiveSessionId(null);
-        localStorage.removeItem('aswrapped_active_session_id');
-        setActiveScreen('welcome');
-      }
-    }
+    setSessionToDeleteId(null);
   };
 
   const handleCopyMessage = (text: string, idx: number) => {
@@ -317,12 +333,13 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
   return (
     <>
       {/* Dimmed Backdrop */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/15 backdrop-blur-[1px] transition-opacity duration-300 cursor-pointer"
-          onClick={onClose}
-        />
-      )}
+      <div
+        className={`fixed inset-0 z-40 bg-black/15 backdrop-blur-[1px] transition-opacity duration-300 cursor-pointer ${
+          isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+        style={{ willChange: 'opacity' }}
+        onClick={onClose}
+      />
 
       {/* Slide Out Panel */}
       <div
@@ -333,6 +350,7 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
           transition-transform duration-300 ease-in-out
           ${isOpen ? 'translate-x-0' : 'translate-x-full'}
         `}
+        style={{ willChange: 'transform' }}
       >
         {/* Header */}
         <div className="h-14 flex items-center justify-between px-4 border-b border-[color:var(--md-sys-color-outline-variant)] shrink-0 bg-[color:var(--md-sys-color-surface)]">
@@ -360,7 +378,7 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
           <div className="flex items-center gap-1">
             {activeScreen === 'chat' && messages.length > 0 && (
               <button
-                onClick={handleClearChat}
+                onClick={triggerClearChat}
                 className="md-icon-btn-sm"
                 title="Hapus Percakapan Ini"
               >
@@ -399,7 +417,7 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
               <div className="flex flex-col gap-1 px-2 text-center">
                 <h3 className="text-[14px] font-bold text-[color:var(--md-sys-color-on-surface)]">Halo Kreator! 👋</h3>
                 <p className="text-[11px] text-[color:var(--md-sys-color-on-surface-variant)] leading-normal">
-                  Saya adalah **Antigravity AI**. Saya memahami data statistik postingan Instagram & TikTok Anda.
+                  Saya adalah <strong className="font-bold text-[color:var(--md-sys-color-primary)]">As-Istent</strong>. Saya memahami data statistik postingan Instagram & TikTok Anda.
                 </p>
               </div>
 
@@ -448,7 +466,7 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleDeleteSession(session.id);
+                            triggerDeleteSession(session.id);
                           }}
                           className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-[color:var(--md-sys-color-error)] hover:bg-[color:var(--md-sys-color-error)]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-150 cursor-pointer"
                           title="Hapus Histori"
@@ -555,6 +573,70 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Dialog Konfirmasi Hapus Obrolan Aktif */}
+      <M3Dialog
+        isOpen={isClearingCurrentChat}
+        onClose={() => setIsClearingCurrentChat(false)}
+        maxWidthClass="max-w-[360px]"
+      >
+        <div className="flex items-start gap-4 text-left">
+          <div className="w-10 h-10 rounded-full bg-[color:var(--md-sys-color-error-container)] text-[color:var(--md-sys-color-on-error-container)] flex items-center justify-center shrink-0">
+            <AlertTriangle size={20} />
+          </div>
+          <div>
+            <h3 className="md-title-medium text-[color:var(--md-sys-color-on-surface)]">Hapus Obrolan?</h3>
+            <p className="md-body-medium text-[color:var(--md-sys-color-on-surface-variant)] mt-1">
+              Hapus percakapan aktif ini dari histori? Tindakan ini tidak dapat dibatalkan.
+            </p>
+          </div>
+        </div>
+        <div className="flex gap-2 justify-end">
+          <button type="button" onClick={() => setIsClearingCurrentChat(false)} className="gai-btn-text text-[12px] font-semibold">
+            Batal
+          </button>
+          <button
+            type="button"
+            onClick={executeClearChat}
+            className="gai-btn-filled text-[12px] font-semibold"
+            style={{ backgroundColor: 'var(--md-sys-color-error)', color: 'var(--md-sys-color-on-error)' }}
+          >
+            Hapus
+          </button>
+        </div>
+      </M3Dialog>
+
+      {/* Dialog Konfirmasi Hapus Sesi Spesifik */}
+      <M3Dialog
+        isOpen={sessionToDeleteId !== null}
+        onClose={() => setSessionToDeleteId(null)}
+        maxWidthClass="max-w-[360px]"
+      >
+        <div className="flex items-start gap-4 text-left">
+          <div className="w-10 h-10 rounded-full bg-[color:var(--md-sys-color-error-container)] text-[color:var(--md-sys-color-on-error-container)] flex items-center justify-center shrink-0">
+            <AlertTriangle size={20} />
+          </div>
+          <div>
+            <h3 className="md-title-medium text-[color:var(--md-sys-color-on-surface)]">Hapus Histori Obrolan?</h3>
+            <p className="md-body-medium text-[color:var(--md-sys-color-on-surface-variant)] mt-1">
+              Hapus histori obrolan ini secara permanen? Tindakan ini tidak dapat dibatalkan.
+            </p>
+          </div>
+        </div>
+        <div className="flex gap-2 justify-end">
+          <button type="button" onClick={() => setSessionToDeleteId(null)} className="gai-btn-text text-[12px] font-semibold">
+            Batal
+          </button>
+          <button
+            type="button"
+            onClick={executeDeleteSession}
+            className="gai-btn-filled text-[12px] font-semibold"
+            style={{ backgroundColor: 'var(--md-sys-color-error)', color: 'var(--md-sys-color-on-error)' }}
+          >
+            Hapus
+          </button>
+        </div>
+      </M3Dialog>
     </>
   );
 };

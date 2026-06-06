@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { X, Sparkles, Calendar, ChevronDown, ChevronUp } from 'lucide-react';
-import { ApiKeyConfig } from '../types';
+import { ApiKeyConfig, FolderDataState } from '../types';
 import { MacDropdown } from './MacDropdown';
 import { simplifyModelName } from '../utils/geminiService';
+import { M3Dialog } from './M3Dialog';
 
 const MONTH_NAMES = [
   "Januari", "Februari", "Maret", "April", "Mei", "Juni",
@@ -29,6 +30,7 @@ interface ReportConfigModalProps {
   selectedYear: number;
   selectedMonth: number;
   activeApiKey: ApiKeyConfig | undefined;
+  folders: FolderDataState;
 }
 
 export const ReportConfigModal: React.FC<ReportConfigModalProps> = ({
@@ -38,10 +40,12 @@ export const ReportConfigModal: React.FC<ReportConfigModalProps> = ({
   periodType,
   selectedYear,
   selectedMonth,
-  activeApiKey
+  activeApiKey,
+  folders
 }) => {
   const [instructions, setInstructions] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [isFullPeriod, setIsFullPeriod] = useState(true);
   
   // Dynamic ranges
   const totalDaysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
@@ -63,6 +67,7 @@ export const ReportConfigModal: React.FC<ReportConfigModalProps> = ({
       setStartDay(1);
       setEndDay(totalDaysInMonth);
       setStartMonth(0);
+      setIsFullPeriod(true);
       setShowAdvanced(false);
       
       const now = new Date();
@@ -91,32 +96,63 @@ export const ReportConfigModal: React.FC<ReportConfigModalProps> = ({
     }
   }, [startMonth]);
 
-  if (!isOpen) return null;
+  // Hitung set hari aktif yang memiliki data postingan di bulan terpilih
+  const activeDays = React.useMemo(() => {
+    const currentMonthEntries = folders[selectedYear]?.[selectedMonth] || [];
+    return new Set(currentMonthEntries.map(e => e.day));
+  }, [folders, selectedYear, selectedMonth, isOpen]);
+
+  // Hitung set bulan aktif yang memiliki data postingan di tahun terpilih
+  const activeMonths = React.useMemo(() => {
+    const active = new Set<number>();
+    const yearData = folders[selectedYear] || {};
+    Object.keys(yearData).forEach(mStr => {
+      const mIdx = parseInt(mStr);
+      if (yearData[mIdx] && yearData[mIdx].length > 0) {
+        active.add(mIdx);
+      }
+    });
+    return active;
+  }, [folders, selectedYear, isOpen]);
 
   const modelLabel = activeApiKey
     ? `${activeApiKey.provider === 'gemini' ? 'Gemini' : 'Hugging Face'} - ${simplifyModelName(activeApiKey.model)}`
     : 'Belum diatur';
 
-  // Dropdown options arrays
-  const startDayOptions = Array.from({ length: totalDaysInMonth }, (_, i) => ({
-    value: i + 1,
-    label: `Hari ${i + 1}`
-  }));
+  // Dropdown options arrays dengan bullet indicator jika ada data
+  const startDayOptions = Array.from({ length: totalDaysInMonth }, (_, i) => {
+    const d = i + 1;
+    const hasData = activeDays.has(d);
+    return {
+      value: d,
+      label: `Hari ${d}${hasData ? ' •' : ''}`
+    };
+  });
 
-  const endDayOptions = Array.from({ length: totalDaysInMonth }, (_, i) => ({
-    value: i + 1,
-    label: `Hari ${i + 1}`
-  })).filter(opt => opt.value >= startDay);
+  const endDayOptions = Array.from({ length: totalDaysInMonth }, (_, i) => {
+    const d = i + 1;
+    const hasData = activeDays.has(d);
+    return {
+      value: d,
+      label: `Hari ${d}${hasData ? ' •' : ''}`
+    };
+  }).filter(opt => opt.value >= startDay);
 
-  const startMonthOptions = Array.from({ length: 12 }, (_, i) => ({
-    value: i,
-    label: MONTH_NAMES[i].substring(0, 3)
-  }));
+  const startMonthOptions = Array.from({ length: 12 }, (_, i) => {
+    const hasData = activeMonths.has(i);
+    return {
+      value: i,
+      label: `${MONTH_NAMES[i].substring(0, 3)}${hasData ? ' •' : ''}`
+    };
+  });
 
-  const endMonthOptions = Array.from({ length: 12 }, (_, i) => ({
-    value: i,
-    label: MONTH_NAMES[i].substring(0, 3)
-  })).filter(opt => opt.value >= startMonth);
+  const endMonthOptions = Array.from({ length: 12 }, (_, i) => {
+    const hasData = activeMonths.has(i);
+    return {
+      value: i,
+      label: `${MONTH_NAMES[i].substring(0, 3)}${hasData ? ' •' : ''}`
+    };
+  }).filter(opt => opt.value >= startMonth);
 
   const languageStyleOptions = [
     { value: 'casual', label: 'Santai & Gaul (Kreator)' },
@@ -141,10 +177,10 @@ export const ReportConfigModal: React.FC<ReportConfigModalProps> = ({
   const handleConfirmClick = () => {
     onConfirm({
       customInstructions: instructions,
-      startDay: periodType === 'month' ? startDay : undefined,
-      endDay: periodType === 'month' ? endDay : undefined,
-      startMonth: periodType === 'year' ? startMonth : undefined,
-      endMonth: periodType === 'year' ? endMonth : undefined,
+      startDay: periodType === 'month' ? (isFullPeriod ? 1 : startDay) : undefined,
+      endDay: periodType === 'month' ? (isFullPeriod ? totalDaysInMonth : endDay) : undefined,
+      startMonth: periodType === 'year' ? (isFullPeriod ? 0 : startMonth) : undefined,
+      endMonth: periodType === 'year' ? (isFullPeriod ? 11 : endMonth) : undefined,
       languageStyle,
       textLength,
       analysisDepth,
@@ -153,13 +189,8 @@ export const ReportConfigModal: React.FC<ReportConfigModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 mac-backdrop md-backdrop-enter">
-      <div className="
-        bg-[color:var(--md-sys-color-surface)]
-        border border-[color:var(--md-sys-color-outline-variant)]
-        rounded-3xl shadow-[var(--md-elevation-3)]
-        w-full max-w-[460px] flex flex-col p-7 select-none md-dialog-enter
-      ">
+    <M3Dialog isOpen={isOpen} onClose={onClose} maxWidthClass="max-w-[460px]">
+      <div className="flex flex-col w-full">
         {/* Header */}
         <div className="flex items-start justify-between gap-4 mb-6">
           <div className="text-left">
@@ -179,52 +210,128 @@ export const ReportConfigModal: React.FC<ReportConfigModalProps> = ({
         {/* Minimal Setup (Always Visible) */}
         <div className="flex flex-col gap-4 text-left">
           
-          {/* Rentang Waktu (Custom Date Range) */}
-          <div className="flex flex-col gap-2">
-            <label className="text-[11px] font-bold text-[color:var(--md-sys-color-on-surface-variant)]/80 uppercase tracking-wider flex items-center gap-1.5">
-              <Calendar size={12} />
-              Pilih Rentang Analisis:
+          {/* Toggle Analisis Periode Penuh */}
+          <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-[color:var(--md-sys-color-surface-container-low)] border border-[color:var(--md-sys-color-outline-variant)]/40">
+            <input
+              type="checkbox"
+              id="full-period-toggle"
+              checked={isFullPeriod}
+              onChange={(e) => setIsFullPeriod(e.target.checked)}
+              className="w-4 h-4 rounded border-[color:var(--md-sys-color-outline)] text-[color:var(--md-sys-color-primary)] focus:ring-[color:var(--md-sys-color-primary)] cursor-pointer"
+            />
+            <label htmlFor="full-period-toggle" className="text-xs font-semibold text-[color:var(--md-sys-color-on-surface)] cursor-pointer flex-1">
+              {periodType === 'month' 
+                ? `Analisis Satu Bulan Penuh (${MONTH_NAMES[selectedMonth]} ${selectedYear})`
+                : `Analisis Satu Tahun Penuh (Tahun ${selectedYear})`
+              }
             </label>
-            <div className="flex gap-2.5 items-center">
-              {periodType === 'month' ? (
-                <>
-                  <MacDropdown 
-                    value={startDay} 
-                    onChange={setStartDay}
-                    options={startDayOptions}
-                    size="sm"
-                    className="flex-1 w-full"
-                  />
-                  <span className="text-xs text-[color:var(--md-sys-color-on-surface-variant)] shrink-0">s/d</span>
-                  <MacDropdown 
-                    value={endDay} 
-                    onChange={setEndDay}
-                    options={endDayOptions}
-                    size="sm"
-                    className="flex-1 w-full"
-                  />
-                </>
-              ) : (
-                <>
-                  <MacDropdown 
-                    value={startMonth} 
-                    onChange={setStartMonth}
-                    options={startMonthOptions}
-                    size="sm"
-                    className="flex-1 w-full"
-                  />
-                  <span className="text-xs text-[color:var(--md-sys-color-on-surface-variant)] shrink-0">s/d</span>
-                  <MacDropdown 
-                    value={endMonth} 
-                    onChange={setEndMonth}
-                    options={endMonthOptions}
-                    size="sm"
-                    className="flex-1 w-full"
-                  />
-                </>
-              )}
-            </div>
           </div>
+
+          {/* Rentang Waktu (Custom Date Range) - Hanya muncul jika isFullPeriod adalah false */}
+          {!isFullPeriod && (
+            <div className="flex flex-col gap-3 p-3 rounded-2xl border border-[color:var(--md-sys-color-outline-variant)]/60 bg-[color:var(--md-sys-color-surface-container-lowest)] md-dialog-enter">
+              <label className="text-[10px] font-bold text-[color:var(--md-sys-color-on-surface-variant)]/80 uppercase tracking-wider flex items-center gap-1.5">
+                <Calendar size={12} />
+                Pilih Rentang Analisis:
+              </label>
+              
+              <div className="flex gap-2.5 items-center">
+                {periodType === 'month' ? (
+                  <>
+                    <MacDropdown 
+                      value={startDay} 
+                      onChange={setStartDay}
+                      options={startDayOptions}
+                      size="sm"
+                      className="flex-1 w-full text-left"
+                    />
+                    <span className="text-xs text-[color:var(--md-sys-color-on-surface-variant)] shrink-0">s/d</span>
+                    <MacDropdown 
+                      value={endDay} 
+                      onChange={setEndDay}
+                      options={endDayOptions}
+                      size="sm"
+                      className="flex-1 w-full text-left"
+                    />
+                  </>
+                ) : (
+                  <>
+                    <MacDropdown 
+                      value={startMonth} 
+                      onChange={setStartMonth}
+                      options={startMonthOptions}
+                      size="sm"
+                      className="flex-1 w-full text-left"
+                    />
+                    <span className="text-xs text-[color:var(--md-sys-color-on-surface-variant)] shrink-0">s/d</span>
+                    <MacDropdown 
+                      value={endMonth} 
+                      onChange={setEndMonth}
+                      options={endMonthOptions}
+                      size="sm"
+                      className="flex-1 w-full text-left"
+                    />
+                  </>
+                )}
+              </div>
+
+              {/* Quick Presets */}
+              <div className="flex flex-col gap-1.5 mt-1 pt-2 border-t border-[color:var(--md-sys-color-outline-variant)]/40">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-[color:var(--md-sys-color-on-surface-variant)]/70">Pintasan Cepat:</span>
+                <div className="flex gap-1.5 flex-wrap">
+                  {periodType === 'month' ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => { setStartDay(1); setEndDay(15); }}
+                        className="px-2.5 py-1 text-[10px] font-semibold rounded-lg bg-[color:var(--md-sys-color-surface-container-high)] hover:bg-[color:var(--md-sys-color-primary-container)] hover:text-[color:var(--md-sys-color-on-primary-container)] border border-[color:var(--md-sys-color-outline-variant)]/40 cursor-pointer transition-colors"
+                      >
+                        15 Hari Pertama (1-15)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setStartDay(16); setEndDay(totalDaysInMonth); }}
+                        className="px-2.5 py-1 text-[10px] font-semibold rounded-lg bg-[color:var(--md-sys-color-surface-container-high)] hover:bg-[color:var(--md-sys-color-primary-container)] hover:text-[color:var(--md-sys-color-on-primary-container)] border border-[color:var(--md-sys-color-outline-variant)]/40 cursor-pointer transition-colors"
+                      >
+                        15 Hari Terakhir (16-{totalDaysInMonth})
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => { setStartMonth(0); setEndMonth(2); }}
+                        className="px-2 py-1 text-[10px] font-semibold rounded-lg bg-[color:var(--md-sys-color-surface-container-high)] hover:bg-[color:var(--md-sys-color-primary-container)] hover:text-[color:var(--md-sys-color-on-primary-container)] border border-[color:var(--md-sys-color-outline-variant)]/40 cursor-pointer transition-colors"
+                      >
+                        Q1 (Jan-Mar)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setStartMonth(3); setEndMonth(5); }}
+                        className="px-2 py-1 text-[10px] font-semibold rounded-lg bg-[color:var(--md-sys-color-surface-container-high)] hover:bg-[color:var(--md-sys-color-primary-container)] hover:text-[color:var(--md-sys-color-on-primary-container)] border border-[color:var(--md-sys-color-outline-variant)]/40 cursor-pointer transition-colors"
+                      >
+                        Q2 (Apr-Jun)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setStartMonth(6); setEndMonth(8); }}
+                        className="px-2 py-1 text-[10px] font-semibold rounded-lg bg-[color:var(--md-sys-color-surface-container-high)] hover:bg-[color:var(--md-sys-color-primary-container)] hover:text-[color:var(--md-sys-color-on-primary-container)] border border-[color:var(--md-sys-color-outline-variant)]/40 cursor-pointer transition-colors"
+                      >
+                        Q3 (Jul-Sep)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setStartMonth(9); setEndMonth(11); }}
+                        className="px-2 py-1 text-[10px] font-semibold rounded-lg bg-[color:var(--md-sys-color-surface-container-high)] hover:bg-[color:var(--md-sys-color-primary-container)] hover:text-[color:var(--md-sys-color-on-primary-container)] border border-[color:var(--md-sys-color-outline-variant)]/40 cursor-pointer transition-colors"
+                      >
+                        Q4 (Okt-Des)
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Custom Instructions Textarea */}
           <div className="flex flex-col gap-2">
@@ -270,7 +377,7 @@ export const ReportConfigModal: React.FC<ReportConfigModalProps> = ({
           {/* Advanced Preset Settings Panel (Revealed on showAdvanced) */}
           <div className={`
             grid grid-cols-2 gap-x-4 gap-y-4 pt-3 border-t border-[color:var(--md-sys-color-outline-variant)]/30
-            transition-all duration-200 ease-in-out origin-top
+            transition-[max-height,opacity] duration-200 ease-[cubic-bezier(0.2,0,0,1)] origin-top
             ${showAdvanced ? 'max-h-[300px] opacity-100 overflow-visible' : 'max-h-0 opacity-0 overflow-hidden pointer-events-none !pt-0 !border-t-0'}
           `}>
             {/* Gaya Bahasa */}
@@ -354,6 +461,6 @@ export const ReportConfigModal: React.FC<ReportConfigModalProps> = ({
           </button>
         </div>
       </div>
-    </div>
+    </M3Dialog>
   );
 };

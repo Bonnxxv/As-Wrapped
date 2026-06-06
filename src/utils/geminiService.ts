@@ -115,7 +115,7 @@ export const generateGeminiReport = async (
   };
 
   const systemInstructions = `
-Anda adalah Antigravity AI, seorang analis media sosial senior dan ahli strategi pertumbuhan digital.
+Anda adalah As-Istent, seorang analis media sosial senior dan ahli strategi pertumbuhan digital.
 Tugas Anda adalah menganalisis data performa konten media sosial untuk membuat laporan terperinci dalam format JSON.
 Analisis Anda harus sangat mendalam, tajam, dan realistis, mencakup deteksi anomali dan analisis tipologi konten.
 
@@ -302,7 +302,7 @@ export const generateHuggingFaceReport = async (
   };
 
   const systemInstructions = `
-Anda adalah Antigravity AI, seorang analis media sosial senior dan ahli strategi pertumbuhan digital.
+Anda adalah As-Istent, seorang analis media sosial senior dan ahli strategi pertumbuhan digital.
 Tugas Anda adalah menganalisis data performa konten media sosial untuk membuat laporan terperinci dalam format JSON.
 Analisis Anda harus sangat mendalam, tajam, dan realistis, mencakup deteksi anomali dan analisis tipologi konten.
 
