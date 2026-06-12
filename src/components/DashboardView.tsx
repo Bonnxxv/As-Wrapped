@@ -25,6 +25,7 @@ import {
 import { FolderDataState, PlatformProfiles, ContentEntry } from '../types';
 import { MONTH_NAMES, getDaysInMonth } from '../utils/initialState';
 import { MacDropdown } from './MacDropdown';
+import { transformContentMetrics } from '../utils/metricTransformer';
 
 const InstagramIcon = ({ size = 14, className = "" }: { size?: number; className?: string }) => {
   const uid = React.useId ? React.useId().replace(/:/g, '') : 'igd';
@@ -220,6 +221,38 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     return n.toLocaleString('id-ID');
   };
 
+  const renderGrowth = (growth: number | null, label?: string) => {
+    const suffix = label ? ` vs ${label}` : '';
+    if (growth === null || isNaN(growth)) {
+      return (
+        <span className="text-[12px] font-medium text-[color:var(--md-sys-color-on-surface-variant)] font-sans">
+          N/A{suffix}
+        </span>
+      );
+    }
+
+    if (growth === 0) {
+      return (
+        <span className="text-[12px] font-medium text-[color:var(--md-sys-color-on-surface-variant)] font-sans">
+          0%{suffix}
+        </span>
+      );
+    }
+
+    const isPositive = growth > 0;
+    const colorClass = isPositive ? 'text-green-500' : 'text-red-500';
+    const Icon = isPositive ? TrendingUp : TrendingDown;
+    const sign = isPositive ? '+' : '-';
+    const absVal = Math.abs(growth).toFixed(0);
+
+    return (
+      <span className={`text-[12px] font-bold flex items-center gap-1 shrink-0 font-sans ${colorClass}`}>
+        <Icon size={12} />
+        {sign}{absVal}%{suffix}
+      </span>
+    );
+  };
+
   const getMetrics = React.useCallback((item: ContentEntry) => {
     if (activeView === 'instagram') return item.instagram;
     if (activeView === 'tiktok') return item.tiktok;
@@ -260,11 +293,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     const yearTtPct = yearTotalViewsCalculated > 0 ? (100 - yearIgPct) : 0;
 
     const prevYearContents = getYearContents(selectedYear - 1);
+    const hasPrevYearData = prevYearContents.length > 0;
     const prevYearTotalViews = prevYearContents.reduce((sum, item) => sum + getMetrics(item).views, 0);
     const prevYearTotalLikes = prevYearContents.reduce((sum, item) => sum + getMetrics(item).likes, 0);
 
-    const yearViewsGrowth = prevYearTotalViews > 0 ? ((yearTotalViews - prevYearTotalViews) / prevYearTotalViews) * 100 : 0;
-    const yearLikesGrowth = prevYearTotalLikes > 0 ? ((yearTotalLikes - prevYearTotalLikes) / prevYearTotalLikes) * 100 : 0;
+    const yearViewsGrowth = hasPrevYearData
+      ? (prevYearTotalViews > 0 ? ((yearTotalViews - prevYearTotalViews) / prevYearTotalViews) * 100 : 0)
+      : null;
+    const yearLikesGrowth = hasPrevYearData
+      ? (prevYearTotalLikes > 0 ? ((yearTotalLikes - prevYearTotalLikes) / prevYearTotalLikes) * 100 : 0)
+      : null;
 
     return {
       yearContents,
@@ -325,8 +363,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
     const prevQTotalViews = prevQuarterContents.reduce((s, i) => s + getMetrics(i).views, 0);
     const prevQTotalLikes = prevQuarterContents.reduce((s, i) => s + getMetrics(i).likes, 0);
-    const quarterViewsGrowth = prevQTotalViews > 0 ? ((quarterTotalViews - prevQTotalViews) / prevQTotalViews) * 100 : 0;
-    const quarterLikesGrowth = prevQTotalLikes > 0 ? ((quarterTotalLikes - prevQTotalLikes) / prevQTotalLikes) * 100 : 0;
+    const hasPrevQuarterData = prevQuarterContents.length > 0;
+
+    const quarterViewsGrowth = hasPrevQuarterData
+      ? (prevQTotalViews > 0 ? ((quarterTotalViews - prevQTotalViews) / prevQTotalViews) * 100 : 0)
+      : null;
+    const quarterLikesGrowth = hasPrevQuarterData
+      ? (prevQTotalLikes > 0 ? ((quarterTotalLikes - prevQTotalLikes) / prevQTotalLikes) * 100 : 0)
+      : null;
 
     return {
       quarterMonths,
@@ -425,13 +469,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   // 3. MONTH CALCULATIONS
   const monthStats = React.useMemo(() => {
-    const selectedMonthContents = folders[selectedYear]?.[selectedMonth] || [];
+    const rawContents = folders[selectedYear]?.[selectedMonth] || [];
+    const selectedMonthContents = transformContentMetrics(rawContents);
 
     const monthTotalViews = selectedMonthContents.reduce((sum, item) => sum + getMetrics(item).views, 0);
     const monthTotalLikes = selectedMonthContents.reduce((sum, item) => sum + getMetrics(item).likes, 0);
-    const monthTotalComments = selectedMonthContents.reduce((sum, item) => sum + getMetrics(item).comments, 0);
     const monthTotalUploads = selectedMonthContents.length;
-    const monthFypCount = selectedMonthContents.filter(item => getMetrics(item).views > 20000).length;
+
+    // Engagement KPI mean logic
+    const activeTrueEngagements = selectedMonthContents.map(item => item.analytics?.instagram?.trueEngagement ?? 0);
+    const monthAvgTrueEngagement = activeTrueEngagements.length > 0 
+      ? (activeTrueEngagements.reduce((sum, val) => sum + val, 0) / activeTrueEngagements.length)
+      : 0;
+
+    // Resonance KPI: filter resonanceRate > 0.50
+    const monthHighResonanceCount = selectedMonthContents.filter(item => (item.analytics?.instagram?.resonanceRate ?? 0) > 0.50).length;
 
     // IG vs TT breakdown for selectedMonth
     const monthIgViews = selectedMonthContents.reduce((sum, item) => sum + item.instagram.views, 0);
@@ -447,22 +499,28 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       prevMYr = selectedYear - 1;
     }
     const prevMonthContents = folders[prevMYr]?.[prevMIdx] || [];
+    const hasPrevMonthData = prevMonthContents.length > 0;
     const prevMonthTotalViews = prevMonthContents.reduce((sum, item) => sum + getMetrics(item).views, 0);
     const prevMonthTotalLikes = prevMonthContents.reduce((sum, item) => sum + getMetrics(item).likes, 0);
 
-    const monthViewsGrowth = prevMonthTotalViews > 0 ? ((monthTotalViews - prevMonthTotalViews) / prevMonthTotalViews) * 100 : 0;
-    const monthLikesGrowth = prevMonthTotalLikes > 0 ? ((monthTotalLikes - prevMonthTotalLikes) / prevMonthTotalLikes) * 100 : 0;
+    const monthViewsGrowth = hasPrevMonthData 
+      ? (prevMonthTotalViews > 0 ? ((monthTotalViews - prevMonthTotalViews) / prevMonthTotalViews) * 100 : 0)
+      : null;
+    const monthLikesGrowth = hasPrevMonthData 
+      ? (prevMonthTotalLikes > 0 ? ((monthTotalLikes - prevMonthTotalLikes) / prevMonthTotalLikes) * 100 : 0)
+      : null;
 
-    const sortedContents = [...selectedMonthContents].sort((a, b) => getMetrics(b).views - getMetrics(a).views);
+    // Sorting Descending by instagram.utilityRate
+    const sortedContents = [...selectedMonthContents].sort((a, b) => (b.analytics?.instagram?.utilityRate ?? 0) - (a.analytics?.instagram?.utilityRate ?? 0));
     const bestContents = activeView === 'dashboard' ? sortedContents.slice(0, 5) : sortedContents.slice(0, 4);
 
     return {
       selectedMonthContents,
       monthTotalViews,
       monthTotalLikes,
-      monthTotalComments,
       monthTotalUploads,
-      monthFypCount,
+      monthHighResonanceCount,
+      monthAvgTrueEngagement,
       monthIgViews,
       monthTtViews,
       monthTotalViewsCalculated,
@@ -478,9 +536,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     selectedMonthContents,
     monthTotalViews,
     monthTotalLikes,
-    monthTotalComments,
     monthTotalUploads,
-    monthFypCount,
+    monthHighResonanceCount,
+    monthAvgTrueEngagement,
     monthIgViews,
     monthTtViews,
     monthIgPct,
@@ -690,12 +748,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Views</span>
                 <div className="flex items-baseline gap-1.5 mt-0.5 flex-wrap">
                   <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">{fmt(yearTotalViews)}</span>
-                  {yearViewsGrowth !== 0 && (
-                    <span className={`text-[12px] font-bold flex items-center gap-0.5 shrink-0 ${yearViewsGrowth >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                      {yearViewsGrowth >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
-                      {yearViewsGrowth > 0 ? '+' : ''}{yearViewsGrowth.toFixed(0)}%
-                    </span>
-                  )}
+                  {renderGrowth(yearViewsGrowth)}
                 </div>
               </div>
             </div>
@@ -784,13 +837,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
           <div className="flex flex-col gap-0.5 z-10">
             <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">{fmt(yearTotalViews)}</span>
-            {yearViewsGrowth !== 0 ? (
-              <span className="text-[12px] font-bold flex items-center gap-1 shrink-0 text-green-500 font-sans">
-                <TrendingUp size={12} />+{yearViewsGrowth.toFixed(0)}% vs LY
-              </span>
-            ) : (
-              <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] invisible font-sans">—</span>
-            )}
+            {renderGrowth(yearViewsGrowth, 'LY')}
           </div>
         </div>
 
@@ -807,13 +854,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
           <div className="flex flex-col gap-0.5 z-10">
             <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">{fmt(yearTotalLikes)}</span>
-            {yearLikesGrowth !== 0 ? (
-              <span className="text-[12px] font-bold flex items-center gap-1 shrink-0 text-green-500 font-sans">
-                <TrendingUp size={12} />+{yearLikesGrowth.toFixed(0)}% vs LY
-              </span>
-            ) : (
-              <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] invisible font-sans">—</span>
-            )}
+            {renderGrowth(yearLikesGrowth, 'LY')}
           </div>
         </div>
 
@@ -887,12 +928,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Views</span>
                 <div className="flex items-baseline gap-1.5 mt-0.5 flex-wrap">
                   <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">{fmt(quarterTotalViews)}</span>
-                  {quarterViewsGrowth !== 0 && (
-                    <span className={`text-[12px] font-bold flex items-center gap-0.5 shrink-0 ${quarterViewsGrowth >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                      {quarterViewsGrowth >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
-                      {quarterViewsGrowth > 0 ? '+' : ''}{quarterViewsGrowth.toFixed(0)}%
-                    </span>
-                  )}
+                  {renderGrowth(quarterViewsGrowth)}
                 </div>
               </div>
             </div>
@@ -960,14 +996,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
           <div className="flex flex-col gap-1 z-10">
             <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">{fmt(quarterTotalViews)}</span>
-            {quarterViewsGrowth !== 0 ? (
-              <span className={`text-[12px] font-bold flex items-center gap-1 shrink-0 font-sans ${quarterViewsGrowth >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                {quarterViewsGrowth >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
-                {quarterViewsGrowth > 0 ? '+' : ''}{quarterViewsGrowth.toFixed(0)}% vs prev Q
-              </span>
-            ) : (
-              <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] invisible font-sans">—</span>
-            )}
+            {renderGrowth(quarterViewsGrowth, 'prev Q')}
           </div>
         </div>
 
@@ -979,14 +1008,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
           <div className="flex flex-col gap-1 z-10">
             <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">{fmt(quarterTotalLikes)}</span>
-            {quarterLikesGrowth !== 0 ? (
-              <span className={`text-[12px] font-bold flex items-center gap-1 shrink-0 font-sans ${quarterLikesGrowth >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                {quarterLikesGrowth >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
-                {quarterLikesGrowth > 0 ? '+' : ''}{quarterLikesGrowth.toFixed(0)}% vs prev Q
-              </span>
-            ) : (
-              <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] invisible font-sans">—</span>
-            )}
+            {renderGrowth(quarterLikesGrowth, 'prev Q')}
           </div>
         </div>
 
@@ -1050,12 +1072,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Views</span>
                 <div className="flex items-baseline gap-2 mt-0.5 flex-wrap">
                   <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">{fmt(monthTotalViews)}</span>
-                  {monthViewsGrowth !== 0 && (
-                    <span className={`text-[12px] font-bold flex items-center gap-1 shrink-0 ${monthViewsGrowth >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                      {monthViewsGrowth >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
-                      {monthViewsGrowth > 0 ? '+' : ''}{monthViewsGrowth.toFixed(0)}%
-                    </span>
-                  )}
+                  {renderGrowth(monthViewsGrowth)}
                 </div>
               </div>
             </div>
@@ -1098,10 +1115,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <Zap size={16} />
             </div>
             <div className="flex flex-col z-10">
-              <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Engagement</span>
+              <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">True Engagement (IG)</span>
               <div className="flex items-baseline gap-2 mt-0.5">
                 <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">
-                  {monthTotalViews > 0 ? ((monthTotalLikes + monthTotalComments) / monthTotalViews * 100).toFixed(2) : '0.00'}%
+                  {monthAvgTrueEngagement.toFixed(2)}%
                 </span>
                 <span className="text-[12px] font-medium text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Avg</span>
               </div>
@@ -1117,10 +1134,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <Sparkles size={16} />
             </div>
             <div className="flex flex-col z-10">
-              <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">FYP Hits</span>
+              <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">High Resonance</span>
               <div className="flex items-baseline gap-2 mt-0.5">
-                <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">{monthFypCount}</span>
-                <span className="text-[12px] font-medium text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">&gt; 20K Views</span>
+                <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">{monthHighResonanceCount}</span>
+                <span className="text-[12px] font-medium text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">&gt; 0.50% Rate</span>
               </div>
             </div>
           </div>
@@ -1144,13 +1161,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
           <div className="flex flex-col gap-1 z-10">
             <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">{fmt(monthTotalViews)}</span>
-            {monthViewsGrowth !== 0 ? (
-              <span className="text-[12px] font-bold flex items-center gap-1 shrink-0 text-green-500 font-sans">
-                <TrendingUp size={12} />+{monthViewsGrowth.toFixed(0)}% vs LM
-              </span>
-            ) : (
-              <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] invisible font-sans">—</span>
-            )}
+            {renderGrowth(monthViewsGrowth, 'LM')}
           </div>
         </div>
 
@@ -1167,13 +1178,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
           <div className="flex flex-col gap-1 z-10">
             <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">{fmt(monthTotalLikes)}</span>
-            {monthLikesGrowth !== 0 ? (
-              <span className="text-[12px] font-bold flex items-center gap-1 shrink-0 text-green-500 font-sans">
-                <TrendingUp size={12} />+{monthLikesGrowth.toFixed(0)}% vs LM
-              </span>
-            ) : (
-              <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] invisible font-sans">—</span>
-            )}
+            {renderGrowth(monthLikesGrowth, 'LM')}
           </div>
         </div>
 
@@ -1200,14 +1205,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           className={`stat-card p-5 flex flex-col justify-between gap-3 ${hoverBorder}`}
         >
           <div className="flex items-center justify-between z-10 gap-2">
-            <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Engagement</span>
+            <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">True Engagement (IG)</span>
             <div className={`p-1.5 rounded-full ${iconBg} shrink-0`}>
               <Zap size={14} />
             </div>
           </div>
           <div className="flex flex-col gap-1 z-10">
             <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">
-              {monthTotalViews > 0 ? ((monthTotalLikes + monthTotalComments) / monthTotalViews * 100).toFixed(2) : '0.00'}%
+              {monthAvgTrueEngagement.toFixed(2)}%
             </span>
             <span className="text-[12px] font-medium text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">Avg</span>
           </div>
@@ -1219,14 +1224,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           className="stat-card p-5 flex flex-col justify-between gap-3 group"
         >
           <div className="flex items-center justify-between z-10 gap-2">
-            <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">FYP Hits</span>
+            <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">High Resonance</span>
             <div className="p-1.5 rounded-full bg-[#f2a918]/10 text-[#f2a918] shrink-0">
               <Sparkles size={14} />
             </div>
           </div>
           <div className="flex flex-col gap-1 z-10">
-            <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">{monthFypCount}</span>
-            <span className="text-[12px] font-medium text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">&gt; 20K Views</span>
+            <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">{monthHighResonanceCount}</span>
+            <span className="text-[12px] font-medium text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">&gt; 0.50% Rate</span>
           </div>
         </div>
       </div>
@@ -1378,12 +1383,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       ? `Q${selectedQuarter} ${selectedYear}`
       : `${MONTH_NAMES[selectedMonth]} ${selectedYear}`;
 
-    // Helper to calculate content entry engagement rate
-    const getEngagementRate = (item: ContentEntry) => {
-      const metrics = getMetrics(item);
-      if (metrics.views === 0) return 0;
-      return ((metrics.likes + metrics.comments + metrics.saves + metrics.shares) / metrics.views) * 100;
-    };
+
 
     if (metric === 'views') {
       title = `Detail Views - ${isYear ? 'Tahunan' : isQuarter ? 'Kuartalan' : 'Bulanan'} (${activeLabel})`;
@@ -1773,8 +1773,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         );
       }
     } else if (metric === 'engagement') {
-      title = `Detail Interaksi - ${isYear ? 'Tahunan' : isQuarter ? 'Kuartalan' : 'Bulanan'} (${activeLabel})`;
-      description = `Analisis rasio keterlibatan pemirsa (Likes + Comments + Saves + Shares)/Views pada periode ${activeLabel}.`;
+      const isMonth = !isYear && !isQuarter;
+      title = isMonth
+        ? `Detail True Engagement (IG) - Bulanan (${activeLabel})`
+        : `Detail Interaksi - ${isYear ? 'Tahunan' : isQuarter ? 'Kuartalan' : 'Bulanan'} (${activeLabel})`;
+      description = isMonth
+        ? `Analisis rasio True Engagement Instagram (Likes + Comments + Saves + Shares)/Views pada periode ${activeLabel}.`
+        : `Analisis rasio keterlibatan pemirsa (Likes + Comments + Saves + Shares)/Views pada periode ${activeLabel}.`;
 
       if (isYear) {
         const monthlyStats = MONTH_NAMES.map((mName, mIdx) => {
@@ -1888,7 +1893,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         );
       } else {
         const items = [...selectedMonthContents]
-          .map(item => ({ ...item, rate: getEngagementRate(item) }))
+          .map(item => ({ ...item, rate: item.analytics?.instagram?.trueEngagement ?? 0 }))
           .sort((a, b) => b.rate - a.rate);
         const maxRate = items.length > 0 ? Math.max(...items.map(item => item.rate)) : 1;
 
@@ -1897,15 +1902,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div className="flex flex-col gap-2.5">
               <div className="flex items-center justify-between text-[12px] uppercase tracking-wider text-[color:var(--md-sys-color-on-surface-variant)] font-bold px-4 pb-1 border-b border-[color:var(--md-sys-color-outline-variant)]/30">
                 <span>Konten</span>
-                <span>Engagement Rate</span>
+                <span>True Engagement Rate (IG)</span>
               </div>
               <div className="flex flex-col gap-2 max-h-[380px] overflow-y-auto pr-1">
                 {items.length === 0 ? (
                   <p className="text-center py-10 text-[color:var(--md-sys-color-on-surface-variant)] text-xs">Belum ada konten diunggah di bulan ini.</p>
                 ) : (
                   items.map((item) => {
-                    const m = getMetrics(item);
-                    const interaksi = m.likes + m.comments + m.saves + m.shares;
+                    const ig = item.instagram;
+                    const interaksi = ig.likes + ig.comments + ig.saves + ig.shares;
                     const percent = maxRate > 0 ? (item.rate / maxRate) * 100 : 0;
                     return (
                       <div 
@@ -1921,9 +1926,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                               {item.title}
                             </span>
                             <div className="flex items-center gap-3 text-[12px] text-[color:var(--md-sys-color-on-surface-variant)] mt-0.5">
-                              <span>Views: <strong className="font-mono font-medium">{fmtFull(m.views)}</strong></span>
+                              <span>IG Views: <strong className="font-mono font-medium">{fmtFull(ig.views)}</strong></span>
                               <span className="text-[color:var(--md-sys-color-outline)]/40">•</span>
-                              <span>Interaksi: <strong className="font-mono font-medium">{fmtFull(interaksi)}</strong></span>
+                              <span>IG Interaksi: <strong className="font-mono font-medium">{fmtFull(interaksi)}</strong></span>
                             </div>
                           </div>
                         </div>
@@ -1946,8 +1951,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         );
       }
     } else if (metric === 'fyp') {
-      title = `Detail FYP Hits - ${isYear ? 'Tahunan' : isQuarter ? 'Kuartalan' : 'Bulanan'} (${activeLabel})`;
-      description = `Daftar unggahan konten berkinerja tinggi yang melampaui ambang batas > 20.000 tayangan.`;
+      const isMonth = !isYear && !isQuarter;
+      title = isMonth 
+        ? `Detail High Resonance - Bulanan (${activeLabel})`
+        : `Detail FYP Hits - ${isYear ? 'Tahunan' : isQuarter ? 'Kuartalan' : 'Bulanan'} (${activeLabel})`;
+      description = isMonth
+        ? `Daftar unggahan konten berkinerja tinggi yang memiliki rasio resonansi Instagram > 0.50%.`
+        : `Daftar unggahan konten berkinerja tinggi yang melampaui ambang batas > 20.000 tayangan.`;
 
       // Gather matching contents
       let fypContents: ContentEntry[] = [];
@@ -1956,10 +1966,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       } else if (isQuarter) {
         fypContents = quarterContents.filter(item => getMetrics(item).views > 20000);
       } else {
-        fypContents = selectedMonthContents.filter(item => getMetrics(item).views > 20000);
+        fypContents = selectedMonthContents.filter(item => (item.analytics?.instagram?.resonanceRate ?? 0) > 0.50);
       }
 
-      fypContents.sort((a, b) => getMetrics(b).views - getMetrics(a).views);
+      fypContents.sort((a, b) => {
+        if (isMonth) {
+          return (b.analytics?.instagram?.resonanceRate ?? 0) - (a.analytics?.instagram?.resonanceRate ?? 0);
+        }
+        return getMetrics(b).views - getMetrics(a).views;
+      });
       const maxViews = fypContents.length > 0 ? Math.max(...fypContents.map(item => getMetrics(item).views)) : 1;
 
       contentNode = (
@@ -1968,7 +1983,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div className="flex items-center gap-3 p-4 bg-amber-500/5 border border-amber-500/10 rounded-2xl">
               <Sparkles size={16} className="text-amber-500 shrink-0" />
               <span className="text-xs font-medium text-[color:var(--md-sys-color-on-surface)]">
-                Hebat! Ada <strong className="text-amber-500 font-semibold">{fypContents.length}</strong> konten yang sukses melampaui target FYP &gt; 20K.
+                {isMonth ? (
+                  <>Hebat! Ada <strong className="text-amber-500 font-semibold">{fypContents.length}</strong> konten yang sukses mendapatkan tingkat resonansi &gt; 0.50%.</>
+                ) : (
+                  <>Hebat! Ada <strong className="text-amber-500 font-semibold">{fypContents.length}</strong> konten yang sukses melampaui target FYP &gt; 20K.</>
+                )}
               </span>
             </div>
           )}
@@ -1979,7 +1998,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
             <div className="flex flex-col gap-2 max-h-[350px] overflow-y-auto pr-1">
               {fypContents.length === 0 ? (
-                <p className="text-center py-10 text-[color:var(--md-sys-color-on-surface-variant)] text-xs">Belum ada konten yang menembus target FYP (&gt; 20K views) pada periode ini.</p>
+                <p className="text-center py-10 text-[color:var(--md-sys-color-on-surface-variant)] text-xs">
+                  {isMonth 
+                    ? "Belum ada konten dengan tingkat resonansi > 0.50% pada periode ini."
+                    : "Belum ada konten yang menembus target FYP (> 20K views) pada periode ini."}
+                </p>
               ) : (
                 fypContents.map((item) => {
                   const m = getMetrics(item);
@@ -2306,9 +2329,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                                 </span>
                               </div>
                               <div className="flex flex-col items-end">
-                                <span className="text-sm font-bold text-[color:var(--md-sys-color-on-surface)]">{fmtFull(getMetrics(content).likes)}</span>
-                                <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider mt-0.5">
-                                  Likes
+                                <span className="text-sm font-bold text-[color:var(--md-sys-color-on-surface)]">
+                                  {(content.analytics?.instagram?.utilityRate ?? 0).toFixed(2)}% Utility
                                 </span>
                               </div>
                             </div>
@@ -2640,10 +2662,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                               Views
                             </span>
                           </div>
-                          <div className="flex flex-col items-end min-w-[70px]">
-                            <span className="text-sm font-bold text-[color:var(--md-sys-color-on-surface)]">{fmtFull(metrics.likes)}</span>
-                            <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider mt-0.5">
-                              Likes
+                          <div className="flex flex-col items-end min-w-[100px]">
+                            <span className="text-sm font-bold text-[color:var(--md-sys-color-on-surface)]">
+                              {(content.analytics?.instagram?.utilityRate ?? 0).toFixed(2)}% Utility
                             </span>
                           </div>
                           <div className="flex flex-col items-end min-w-[70px]">

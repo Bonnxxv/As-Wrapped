@@ -14,6 +14,22 @@ export interface ContentEntry {
   title: string;
   instagram: ContentMetrics;
   tiktok: ContentMetrics;
+  timestamp?: number;
+  analytics?: {
+    instagram: {
+      utilityRate: number;
+      resonanceRate: number;
+      trueEngagement: number;
+      savesPerMille: number;
+    };
+    tiktok: {
+      utilityRate: number;
+      resonanceRate: number;
+      trueEngagement: number;
+      savesPerMille: number;
+    };
+    varianceMultiplier: number;
+  };
 }
 
 export interface PlatformProfile {
