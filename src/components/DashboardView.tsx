@@ -78,8 +78,32 @@ const CalendarWidget = ({ year, monthIndex, activeMonthData }: { year: number, m
   const trailingBlanks = Array.from({ length: trailingCount }, () => null);
   const totalSlots = [...initialSlots, ...trailingBlanks];
 
-  const daysWithContent = new Set(activeMonthData.map(c => c.day));
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  // Group contents by day and calculate average instagram.trueEngagement
+  const dayEngagementMap = React.useMemo(() => {
+    const map: Record<number, number> = {};
+    const dayCounts: Record<number, number> = {};
+    
+    activeMonthData.forEach(item => {
+      const day = item.day;
+      const eng = item.analytics?.instagram?.trueEngagement ?? 0;
+      if (map[day] === undefined) {
+        map[day] = 0;
+        dayCounts[day] = 0;
+      }
+      map[day] += eng;
+      dayCounts[day] += 1;
+    });
+
+    const finalMap: Record<number, number> = {};
+    Object.keys(map).forEach(key => {
+      const day = Number(key);
+      finalMap[day] = map[day] / dayCounts[day];
+    });
+
+    return finalMap;
+  }, [activeMonthData]);
 
   return (
     <div className="w-full mt-4">
@@ -95,15 +119,27 @@ const CalendarWidget = ({ year, monthIndex, activeMonthData }: { year: number, m
           if (day === null) {
             return <div key={`blank-${idx}`} className="h-11 border-r border-b border-[color:var(--md-sys-color-outline-variant)] bg-[color:var(--md-sys-color-background)]" />;
           }
-          const hasContent = daysWithContent.has(day);
+
+          const hasContent = dayEngagementMap[day] !== undefined;
+          let badgeClass = 'text-[color:var(--md-sys-color-on-surface)]';
+          
+          if (hasContent) {
+            const avgEng = dayEngagementMap[day];
+            if (avgEng < 0.50) {
+              badgeClass = 'bg-blue-200 text-blue-900 font-bold';
+            } else if (avgEng <= 1.00) {
+              badgeClass = 'bg-blue-400 text-white font-bold';
+            } else {
+              badgeClass = 'bg-blue-600 text-white font-bold';
+            }
+          }
+
           return (
             <div
               key={day}
               className="h-11 flex flex-col items-center justify-center border-r border-b border-[color:var(--md-sys-color-outline-variant)] text-[12px] hover:bg-[color:var(--md-sys-color-surface-container-high)] transition-colors duration-150 relative cursor-pointer"
             >
-              <div className={`w-8 h-8 flex flex-col items-center justify-center rounded-full text-xs font-semibold ${
-                hasContent ? 'bg-[#0064e0] text-white font-bold' : 'text-[color:var(--md-sys-color-on-surface)]'
-              }`}>
+              <div className={`w-8 h-8 flex flex-col items-center justify-center rounded-full text-xs font-semibold ${badgeClass}`}>
                 {day}
               </div>
             </div>
@@ -1109,13 +1145,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           {/* Engagement Rate Card */}
           <div 
             onClick={() => setExpandedCard({ period: 'month', metric: 'engagement' })}
-            className={`stat-card p-5 items-center flex gap-3 w-full group ${hoverBorder}`}
+            className={`stat-card p-5 items-center flex gap-3 w-full group relative ${hoverBorder}`}
           >
             <div className={`p-2 rounded-full ${iconBg} shrink-0 z-10`}>
               <Zap size={16} />
             </div>
-            <div className="flex flex-col z-10">
-              <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">True Engagement (IG)</span>
+            <div className="flex flex-col z-10 relative">
+              <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans flex items-center gap-1">
+                <span>True Engagement (IG)</span>
+                <span className="text-gray-400 cursor-help select-none text-[11px] font-normal font-sans">(?)</span>
+              </span>
+              <span className="pointer-events-none absolute bottom-full left-0 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gray-900/95 text-white text-[10px] font-medium tracking-normal normal-case rounded-md py-1 px-2 z-50 shadow-lg backdrop-blur-sm border border-white/10 w-max max-w-xs whitespace-normal font-sans">
+                (Likes + Comments + Saves + Shares) / Views
+              </span>
               <div className="flex items-baseline gap-2 mt-0.5">
                 <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">
                   {monthAvgTrueEngagement.toFixed(2)}%
@@ -1128,13 +1170,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           {/* FYP Hits Card */}
           <div 
             onClick={() => setExpandedCard({ period: 'month', metric: 'fyp' })}
-            className={`stat-card p-5 items-center flex gap-3 w-full group ${hoverBorder}`}
+            className={`stat-card p-5 items-center flex gap-3 w-full group relative ${hoverBorder}`}
           >
             <div className={`p-2 rounded-full ${iconBg} shrink-0 z-10`}>
               <Sparkles size={16} />
             </div>
-            <div className="flex flex-col z-10">
-              <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">High Resonance</span>
+            <div className="flex flex-col z-10 relative">
+              <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans flex items-center gap-1">
+                <span>High Resonance</span>
+                <span className="text-gray-400 cursor-help select-none text-[11px] font-normal font-sans">(?)</span>
+              </span>
+              <span className="pointer-events-none absolute bottom-full left-0 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gray-900/95 text-white text-[10px] font-medium tracking-normal normal-case rounded-md py-1 px-2 z-50 shadow-lg backdrop-blur-sm border border-white/10 w-max max-w-xs whitespace-normal font-sans">
+                Shares / Views &gt; 0.50%
+              </span>
               <div className="flex items-baseline gap-2 mt-0.5">
                 <span className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--md-sys-color-on-surface)]">{monthHighResonanceCount}</span>
                 <span className="text-[12px] font-medium text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">&gt; 0.50% Rate</span>
@@ -1202,10 +1250,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         {/* Engagement Rate Card */}
         <div 
           onClick={() => setExpandedCard({ period: 'month', metric: 'engagement' })}
-          className={`stat-card p-5 flex flex-col justify-between gap-3 ${hoverBorder}`}
+          className={`stat-card p-5 flex flex-col justify-between gap-3 group relative ${hoverBorder}`}
         >
-          <div className="flex items-center justify-between z-10 gap-2">
-            <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">True Engagement (IG)</span>
+          <div className="flex items-center justify-between z-10 gap-2 relative">
+            <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans flex items-center gap-1">
+              True Engagement (IG) <span className="text-gray-400 cursor-help select-none text-[11px] font-normal font-sans">(?)</span>
+            </span>
+            <span className="pointer-events-none absolute bottom-full left-0 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gray-900/95 text-white text-[10px] font-medium tracking-normal normal-case rounded-md py-1 px-2 z-50 shadow-lg backdrop-blur-sm border border-white/10 w-max max-w-xs whitespace-normal font-sans">
+              (Likes + Comments + Saves + Shares) / Views
+            </span>
             <div className={`p-1.5 rounded-full ${iconBg} shrink-0`}>
               <Zap size={14} />
             </div>
@@ -1221,10 +1274,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         {/* FYP Hits Card */}
         <div 
           onClick={() => setExpandedCard({ period: 'month', metric: 'fyp' })}
-          className="stat-card p-5 flex flex-col justify-between gap-3 group"
+          className="stat-card p-5 flex flex-col justify-between gap-3 group relative"
         >
-          <div className="flex items-center justify-between z-10 gap-2">
-            <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans">High Resonance</span>
+          <div className="flex items-center justify-between z-10 gap-2 relative">
+            <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans flex items-center gap-1">
+              High Resonance <span className="text-gray-400 cursor-help select-none text-[11px] font-normal font-sans">(?)</span>
+            </span>
+            <span className="pointer-events-none absolute bottom-full left-0 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gray-900/95 text-white text-[10px] font-medium tracking-normal normal-case rounded-md py-1 px-2 z-50 shadow-lg backdrop-blur-sm border border-white/10 w-max max-w-xs whitespace-normal font-sans">
+              Shares / Views &gt; 0.50%
+            </span>
             <div className="p-1.5 rounded-full bg-[#f2a918]/10 text-[#f2a918] shrink-0">
               <Sparkles size={14} />
             </div>
@@ -2296,11 +2354,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                               </div>
                               
                               <div className="flex flex-col flex-1 min-w-0">
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 flex-wrap">
                                   <span className="text-sm font-semibold text-[color:var(--md-sys-color-on-surface)] hover:text-[color:var(--md-sys-color-primary)] transition-colors duration-150">
                                     {content.title}
                                   </span>
                                   {isFirst && <Crown size={14} className="text-[#f2a918] shrink-0" />}
+                                  {(content.analytics?.instagram?.utilityRate ?? 0) > 0.50 && (
+                                    <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-green-100 text-green-700 shrink-0 font-sans">
+                                      Evergreen
+                                    </span>
+                                  )}
+                                  {(content.analytics?.instagram?.resonanceRate ?? 0) > 0.50 && (
+                                    <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-orange-100 text-orange-700 shrink-0 font-sans">
+                                      Viral
+                                    </span>
+                                  )}
                                 </div>
 
                                 <span className="md-label-small text-[color:var(--md-sys-color-on-surface-variant)] mt-1 uppercase">
@@ -2313,8 +2381,34 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                                     <div style={{ width: `${igPct}%`, backgroundColor: getPercentageColor(igPct) }} className="h-full" />
                                     <div style={{ width: `${ttPct}%`, backgroundColor: getPercentageColor(ttPct) }} className="h-full" />
                                   </div>
-                                  <div className="flex justify-between text-[12px] font-bold uppercase tracking-wider text-[color:var(--md-sys-color-on-surface-variant)]">
+                                  <div className="flex justify-between items-center text-[12px] font-bold uppercase tracking-wider text-[color:var(--md-sys-color-on-surface-variant)]">
                                     <span>IG: {fmt(igViews)} ({igPct}%)</span>
+                                    {(() => {
+                                      const vm = content.analytics?.varianceMultiplier ?? 0;
+                                      if (igViews === 0 && ttViews === 0) return null;
+                                      let text = '';
+                                      if (vm > 1) {
+                                        text = `IG ${vm.toFixed(1)}x > TT`;
+                                      } else if (vm > 0 && vm < 1) {
+                                        const inv = 1 / vm;
+                                        text = `TT ${inv.toFixed(1)}x > IG`;
+                                      } else if (vm === 0) {
+                                        if (igViews > 0 && ttViews === 0) {
+                                          text = `IG > TT`;
+                                        } else if (ttViews > 0 && igViews === 0) {
+                                          text = `TT > IG`;
+                                        } else {
+                                          return null;
+                                        }
+                                      } else {
+                                        return null;
+                                      }
+                                      return (
+                                        <span className="text-xs font-sans font-normal normal-case bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 rounded px-1 shrink-0 self-center">
+                                          {text}
+                                        </span>
+                                      );
+                                    })()}
                                     <span>TT: {fmt(ttViews)} ({ttPct}%)</span>
                                   </div>
                                 </div>
@@ -2430,7 +2524,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <CalendarWidget
                   year={selectedYear}
                   monthIndex={selectedMonth}
-                  activeMonthData={folders[selectedYear]?.[selectedMonth] || []}
+                  activeMonthData={selectedMonthContents}
                 />
               </div>
 
@@ -2642,11 +2736,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                           </div>
                           
                           <div className="flex flex-col flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <span className="text-sm font-bold text-[color:var(--md-sys-color-on-surface)] hover:text-[color:var(--md-sys-color-primary)] transition-colors duration-150">
                                 {content.title}
                               </span>
                               {isFirst && <Crown size={14} className="text-[#f2a918] shrink-0" />}
+                              {(content.analytics?.instagram?.utilityRate ?? 0) > 0.50 && (
+                                <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-green-100 text-green-700 shrink-0 font-sans">
+                                  Evergreen
+                                </span>
+                              )}
+                              {(content.analytics?.instagram?.resonanceRate ?? 0) > 0.50 && (
+                                <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-orange-100 text-orange-700 shrink-0 font-sans">
+                                  Viral
+                                </span>
+                              )}
                             </div>
 
                             <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider mt-1">
