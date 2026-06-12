@@ -1145,7 +1145,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           {/* Engagement Rate Card */}
           <div 
             onClick={() => setExpandedCard({ period: 'month', metric: 'engagement' })}
-            className={`stat-card p-5 items-center flex gap-3 w-full group relative ${hoverBorder}`}
+            className={`stat-card p-5 items-center flex gap-3 w-full group relative !overflow-visible ${hoverBorder}`}
           >
             <div className={`p-2 rounded-full ${iconBg} shrink-0 z-10`}>
               <Zap size={16} />
@@ -1155,7 +1155,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <span>True Engagement (IG)</span>
                 <span className="text-gray-400 cursor-help select-none text-[11px] font-normal font-sans">(?)</span>
               </span>
-              <span className="pointer-events-none absolute bottom-full left-0 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gray-900/95 text-white text-[10px] font-medium tracking-normal normal-case rounded-md py-1 px-2 z-50 shadow-lg backdrop-blur-sm border border-white/10 w-max max-w-xs whitespace-normal font-sans">
+              <span className="pointer-events-none absolute bottom-full right-0 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gray-900/95 text-white text-[10px] font-medium tracking-normal normal-case rounded-md py-1 px-2 z-50 shadow-lg backdrop-blur-sm border border-white/10 w-max max-w-xs whitespace-normal font-sans">
                 (Likes + Comments + Saves + Shares) / Views
               </span>
               <div className="flex items-baseline gap-2 mt-0.5">
@@ -1170,7 +1170,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           {/* FYP Hits Card */}
           <div 
             onClick={() => setExpandedCard({ period: 'month', metric: 'fyp' })}
-            className={`stat-card p-5 items-center flex gap-3 w-full group relative ${hoverBorder}`}
+            className={`stat-card p-5 items-center flex gap-3 w-full group relative !overflow-visible ${hoverBorder}`}
           >
             <div className={`p-2 rounded-full ${iconBg} shrink-0 z-10`}>
               <Sparkles size={16} />
@@ -1180,7 +1180,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <span>High Resonance</span>
                 <span className="text-gray-400 cursor-help select-none text-[11px] font-normal font-sans">(?)</span>
               </span>
-              <span className="pointer-events-none absolute bottom-full left-0 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gray-900/95 text-white text-[10px] font-medium tracking-normal normal-case rounded-md py-1 px-2 z-50 shadow-lg backdrop-blur-sm border border-white/10 w-max max-w-xs whitespace-normal font-sans">
+              <span className="pointer-events-none absolute bottom-full right-0 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gray-900/95 text-white text-[10px] font-medium tracking-normal normal-case rounded-md py-1 px-2 z-50 shadow-lg backdrop-blur-sm border border-white/10 w-max max-w-xs whitespace-normal font-sans">
                 Shares / Views &gt; 0.50%
               </span>
               <div className="flex items-baseline gap-2 mt-0.5">
@@ -1250,13 +1250,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         {/* Engagement Rate Card */}
         <div 
           onClick={() => setExpandedCard({ period: 'month', metric: 'engagement' })}
-          className={`stat-card p-5 flex flex-col justify-between gap-3 group relative ${hoverBorder}`}
+          className={`stat-card p-5 flex flex-col justify-between gap-3 group relative !overflow-visible ${hoverBorder}`}
         >
           <div className="flex items-center justify-between z-10 gap-2 relative">
             <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans flex items-center gap-1">
               True Engagement (IG) <span className="text-gray-400 cursor-help select-none text-[11px] font-normal font-sans">(?)</span>
             </span>
-            <span className="pointer-events-none absolute bottom-full left-0 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gray-900/95 text-white text-[10px] font-medium tracking-normal normal-case rounded-md py-1 px-2 z-50 shadow-lg backdrop-blur-sm border border-white/10 w-max max-w-xs whitespace-normal font-sans">
+            <span className="pointer-events-none absolute bottom-full right-0 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gray-900/95 text-white text-[10px] font-medium tracking-normal normal-case rounded-md py-1 px-2 z-50 shadow-lg backdrop-blur-sm border border-white/10 w-max max-w-xs whitespace-normal font-sans">
               (Likes + Comments + Saves + Shares) / Views
             </span>
             <div className={`p-1.5 rounded-full ${iconBg} shrink-0`}>
@@ -1274,13 +1274,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         {/* FYP Hits Card */}
         <div 
           onClick={() => setExpandedCard({ period: 'month', metric: 'fyp' })}
-          className="stat-card p-5 flex flex-col justify-between gap-3 group relative"
+          className="stat-card p-5 flex flex-col justify-between gap-3 group relative !overflow-visible"
         >
           <div className="flex items-center justify-between z-10 gap-2 relative">
             <span className="text-[12px] font-bold text-[color:var(--md-sys-color-on-surface-variant)] uppercase tracking-wider font-sans flex items-center gap-1">
               High Resonance <span className="text-gray-400 cursor-help select-none text-[11px] font-normal font-sans">(?)</span>
             </span>
-            <span className="pointer-events-none absolute bottom-full left-0 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gray-900/95 text-white text-[10px] font-medium tracking-normal normal-case rounded-md py-1 px-2 z-50 shadow-lg backdrop-blur-sm border border-white/10 w-max max-w-xs whitespace-normal font-sans">
+            <span className="pointer-events-none absolute bottom-full right-0 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gray-900/95 text-white text-[10px] font-medium tracking-normal normal-case rounded-md py-1 px-2 z-50 shadow-lg backdrop-blur-sm border border-white/10 w-max max-w-xs whitespace-normal font-sans">
               Shares / Views &gt; 0.50%
             </span>
             <div className="p-1.5 rounded-full bg-[#f2a918]/10 text-[#f2a918] shrink-0">
@@ -2404,7 +2404,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                                         return null;
                                       }
                                       return (
-                                        <span className="text-xs font-sans font-normal normal-case bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 rounded px-1 shrink-0 self-center">
+                                        <span className={`text-xs font-sans font-normal normal-case rounded px-1.5 py-0.5 shrink-0 self-center ${
+                                          isDarkMode 
+                                            ? 'bg-gray-800 text-gray-400' 
+                                            : 'bg-gray-100 text-gray-500'
+                                        }`}>
                                           {text}
                                         </span>
                                       );
